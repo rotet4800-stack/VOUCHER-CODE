@@ -73,14 +73,14 @@ class handler(BaseHTTPRequestHandler):
                         <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                     </div>
                     <div class="counter">Total Groups: {total_groups}</div>
+                    <div class="footer-summary">
+                        <div class="summary-card">Total: <b>{total_vouchers}</b></div>
+                        <div class="summary-card">In-Use: <b>{used_vouchers}</b></div>
+                        <div class="summary-card">Expired: <b>{expired_vouchers}</b></div>
+                    </div>
                 </div>
                 <div class="scrollable-list">
                     {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">No groups found.</p>'}
-                </div>
-                <div class="footer-summary">
-                    <div class="summary-card">Total: <b>{total_vouchers}</b></div>
-                    <div class="summary-card">In-Use: <b>{used_vouchers}</b></div>
-                    <div class="summary-card">Expired: <b>{expired_vouchers}</b></div>
                 </div>
                 """
             else:
@@ -141,13 +141,13 @@ class handler(BaseHTTPRequestHandler):
                     .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
                     .nav-tab {{ flex: 1; text-align: center; padding: 8px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; }}
                     .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; margin-bottom: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
-                    .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
-                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
-                    .footer-summary {{ flex-shrink: 0; display: flex; gap: 8px; padding-top: 2px; }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(25,135,84,0.3); margin-bottom: 6px; }}
+                    .footer-summary {{ display: flex; gap: 6px; }}
                     .summary-card {{ flex: 1; background: #ffffff; border: 1px solid #d1e7dd; padding: 8px 4px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }}
                     .summary-card b {{ display: block; color: #198754; font-size: 13px; margin-top: 2px; }}
+                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
+                    .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
+                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
                 </style>
             </head>
             <body>
