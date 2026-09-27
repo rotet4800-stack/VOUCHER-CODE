@@ -305,7 +305,7 @@ class handler(BaseHTTPRequestHandler):
                 </div>
                 """
 
-            html_content = f"""
+            html_content = """
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -313,32 +313,32 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Network Management Dashboard</title>
                 <style>
-                    html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }}
-                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }}
-                    .sticky-header {{ flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }}
-                    .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 10px; }}
-                    .nav-tab {{ flex: 1; text-align: center; padding: 14px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 1px solid #adb5bd; }}
-                    .nav-tab.active {{ background: #0d6efd; color: #ffffff; box-shadow: 0 4px 8px rgba(13,110,253,0.3); border-color: #0b5ed7; }}
-                    .blue-box {{ background: #0d6efd; color: #ffffff; padding: 16px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 700; box-shadow: 0 4px 10px rgba(13,110,253,0.3); margin-bottom: 8px; border: 2px solid #084298; }}
-                    .blue-card {{ background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #ced4da; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px; }}
-                    .footer-summary {{ display: flex; gap: 6px; }}
-                    .summary-card {{ flex: 1; background: #f8f9fa; border: 2px solid #ced4da; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #212529; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }}
-                    .summary-card b {{ display: block; color: #0d6efd; font-size: 14px; margin-top: 2px; }}
-                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
-                    .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
-                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #adb5bd; border-radius: 10px; }}
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }
+                    .container { max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }
+                    .sticky-header { flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }
+                    .nav-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+                    .nav-tab { flex: 1; text-align: center; padding: 14px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 1px solid #adb5bd; }
+                    .nav-tab.active { background: #0d6efd; color: #ffffff; box-shadow: 0 4px 8px rgba(13,110,253,0.3); border-color: #0b5ed7; }
+                    .blue-box { background: #0d6efd; color: #ffffff; padding: 16px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 700; box-shadow: 0 4px 10px rgba(13,110,253,0.3); margin-bottom: 8px; border: 2px solid #084298; }
+                    .blue-card { background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #ced4da; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px; }
+                    .footer-summary { display: flex; gap: 6px; }
+                    .summary-card { flex: 1; background: #f8f9fa; border: 2px solid #ced4da; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #212529; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+                    .summary-card b { display: block; color: #0d6efd; font-size: 14px; margin-top: 2px; }
+                    .scrollable-list { flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }
+                    .scrollable-list::-webkit-scrollbar { width: 5px; }
+                    .scrollable-list::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
                     
-                    #loading-overlay {{
+                    #loading-overlay {
                         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                         background: rgba(233, 236, 239, 0.85); display: none;
                         justify-content: center; align-items: center; z-index: 9999;
-                    }}
-                    .spinner {{
+                    }
+                    .spinner {
                         width: 45px; height: 45px; border: 5px solid #ced4da;
                         border-top: 5px solid #0d6efd; border-radius: 50%;
                         animation: spin 0.7s linear infinite;
-                    }}
-                    @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                    }
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                 </style>
             </head>
             <body>
@@ -346,58 +346,58 @@ class handler(BaseHTTPRequestHandler):
                     <div class="spinner"></div>
                 </div>
                 <div class="container">
-                    {content_html}
+                    """ + content_html + """
                 </div>
                 <script>
-                    document.addEventListener("click", function(e) {{
+                    document.addEventListener("click", function(e) {
                         let target = e.target.closest("a");
-                        if (target && target.getAttribute("href")) {{
+                        if (target && target.getAttribute("href")) {
                             let href = target.getAttribute("href");
-                            if (href.startsWith("?") || href.startsWith("/")) {{
+                            if (href.startsWith("?") || href.startsWith("/")) {
                                 document.getElementById("loading-overlay").style.display = "flex";
-                            }}
-                        }}
-                    }});
+                            }
+                        }
+                    });
 
                     let globalBluetoothDevice = null;
                     let globalCharacteristic = null;
 
-                    async function startPrinting(groupName, codes) {{
+                    async function startPrinting(groupName, codes) {
                         let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
                         if (!countStr) return;
                         let count = parseInt(countStr);
                         if (isNaN(count) || count <= 0) return;
 
-                        try {{
-                            if (!globalBluetoothDevice || !globalBluetoothDevice.gatt.connected || !globalCharacteristic) {{
-                                globalBluetoothDevice = await navigator.bluetooth.requestDevice({{
+                        try {
+                            if (!globalBluetoothDevice || !globalBluetoothDevice.gatt.connected || !globalCharacteristic) {
+                                globalBluetoothDevice = await navigator.bluetooth.requestDevice({
                                     acceptAllDevices: true,
                                     optionalServices: [ '000018f0-0000-1000-8000-00805f9b34fb' ]
-                                }});
+                                });
                                 const server = await globalBluetoothDevice.gatt.connect();
                                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                                 globalCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-                            }}
+                            }
 
                             let encoder = new TextEncoder();
                             let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n";
                             
-                            for (let i = 0; i < count && i < codes.length; i++) {{
+                            for (let i = 0; i < count && i < codes.length; i++) {
                                 printData += "WIFI-Cafe\\n";
                                 printData += "- " + groupName + " -\\n";
                                 printData += codes[i] + "\\n\\n\\n";
-                            }}
+                            }
                             
                             printData += "--------------------------------\\n\\n\\n";
 
                             await globalCharacteristic.writeValue(encoder.encode(printData));
                             alert("ပရင်တာသို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ!");
-                        } catch (error) {{
+                        } catch (error) {
                             globalBluetoothDevice = null;
                             globalCharacteristic = null;
                             alert("Printer Error: " + error);
-                        }}
-                    }}
+                        }
+                    }
                 </script>
             </body>
             </html>
