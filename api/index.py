@@ -363,11 +363,6 @@ class handler(BaseHTTPRequestHandler):
                     let globalCharacteristic = null;
 
                     async function startPrinting(groupName, codes) {
-                        let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
-                        if (!countStr) return;
-                        let count = parseInt(countStr);
-                        if (isNaN(count) || count <= 0) return;
-
                         try {
                             if (!globalBluetoothDevice || !globalBluetoothDevice.gatt.connected || !globalCharacteristic) {
                                 globalBluetoothDevice = await navigator.bluetooth.requestDevice({
@@ -378,6 +373,11 @@ class handler(BaseHTTPRequestHandler):
                                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                                 globalCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
                             }
+
+                            let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
+                            if (!countStr) return;
+                            let count = parseInt(countStr);
+                            if (isNaN(count) || count <= 0) return;
 
                             let encoder = new TextEncoder();
                             let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n";
