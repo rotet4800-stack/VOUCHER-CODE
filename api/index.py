@@ -11,7 +11,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
-        # URL query parameters ကို စစ်ဆေးခြင်း (ဥပမာ ?tab=devices သို့မဟုတ် ?tab=groups)
         parsed_url = urlparse(self.path)
         query_params = parse_qs(parsed_url.query)
         current_tab = query_params.get('tab', ['devices'])[0]
@@ -27,14 +26,13 @@ class handler(BaseHTTPRequestHandler):
         }
         
         try:
-            # ၁။ Access Token တောင်းယူခြင်း
             token_url = f"{BASE_URL}/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
             token_payload = json.dumps({"appid": APP_ID, "secret": SECRET})
             token_res = requests.post(token_url, headers=headers, data=token_payload)
             token_data = token_res.json()
             
             if token_res.status_code != 200 or token_data.get("code") != 0:
-                self.wfile.write("<h3>ဒေတာရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
+                self.wfile.write("<h3>Failed to fetch token</h3>".encode('utf-8'))
                 return
 
             access_token = token_data.get("accessToken")
@@ -42,7 +40,6 @@ class handler(BaseHTTPRequestHandler):
             content_html = ""
             
             if current_tab == 'groups':
-                # --- Feature 2: User Groups Data ---
                 ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
                 ug_res = requests.get(ug_url, headers=headers)
                 ug_data = ug_res.json()
@@ -72,13 +69,18 @@ class handler(BaseHTTPRequestHandler):
                     """
                 
                 content_html = f"""
-                <div class="counter">စုစုပေါင်း အုပ်စုအရေအတွက်: {total_count} ခု</div>
+                <div class="sticky-header">
+                    <div class="nav-tabs">
+                        <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                        <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                    </div>
+                    <div class="counter">Total Groups: {total_count}</div>
+                </div>
                 <div class="scrollable-list">
-                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">အချက်အလက် မရှိသေးပါ။</p>'}
+                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">No groups found.</p>'}
                 </div>
                 """
             else:
-                # --- Feature 1: Connected Devices Data ---
                 client_url = f"{BASE_URL}/service/api/open/v1/dev/user/current-user?group_id={GROUP_ID}&page_index=1&page_size=100&access_token={access_token}"
                 client_res = requests.get(client_url, headers=headers)
                 client_data = client_res.json()
@@ -110,15 +112,21 @@ class handler(BaseHTTPRequestHandler):
                     """
                 
                 content_html = f"""
-                <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
+                <div class="sticky-header">
+                    <div class="nav-tabs">
+                        <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                        <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                    </div>
+                    <div class="counter">Total Connected: {total_count} Devices</div>
+                </div>
                 <div class="scrollable-list">
-                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}
+                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">No connected devices found.</p>'}
                 </div>
                 """
 
             html_content = f"""
             <!DOCTYPE html>
-            <html lang="my">
+            <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -126,24 +134,18 @@ class handler(BaseHTTPRequestHandler):
                 <style>
                     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #e8f5e9; margin: 0; padding: 16px; color: #323130; }}
                     .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 88vh; box-sizing: border-box; }}
-                    .sticky-header {{ position: sticky; top: 0; background: #c8e6c9; z-index: 10; padding-bottom: 10px; }}
+                    .sticky-header {{ position: sticky; top: 0; background: #c8e6c9; z-index: 10; padding-bottom: 10px; flex-shrink: 0; }}
                     .nav-tabs {{ display: flex; gap: 10px; margin-bottom: 15px; }}
                     .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.2s; }}
                     .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); margin-bottom: 10px; }}
-                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); margin-bottom: 5px; }}
+                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; margin-top: 5px; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <div class="sticky-header">
-                        <div class="nav-tabs">
-                            <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">ချိတ်ဆက်ထားသော စက်များ</a>
-                            <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">အသုံးပြုသူ အုပ်စုများ</a>
-                        </div>
-                    </div>
                     {content_html}
                 </div>
             </body>
@@ -153,6 +155,6 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(html_content.encode('utf-8'))
             
         except Exception as e:
-            self.wfile.write(f"<h3>စနစ် အမှားအယွင်းရှိပါသည်: {str(e)}</h3>".encode('utf-8'))
+            self.wfile.write(f"<h3>System Error: {str(e)}</h3>".encode('utf-8'))
         
         return
