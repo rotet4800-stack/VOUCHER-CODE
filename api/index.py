@@ -47,13 +47,25 @@ class handler(BaseHTTPRequestHandler):
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
-                summary_url = f"{BASE_URL}/service/api/open/auth/account/getStatusSummary/{GROUP_ID}?access_token={access_token}&groupId={GROUP_ID}"
-                summary_res = requests.get(summary_url, headers=headers)
-                summary_data = summary_res.json()
+                # Account/Voucher List ကို လှမ်းခေါ်ပြီး အရေအတွက် အတိအကျ တွက်ချက်ခြင်း (API 2.4.3)[span_2](start_span)[span_2](end_span)
+                acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                acc_res = requests.get(acc_url, headers=headers)
+                acc_data = acc_res.json()
                 
-                total_vouchers = summary_data.get("total", "0")
-                used_vouchers = summary_data.get("used", "0")
-                expired_vouchers = summary_data.get("expired", "0")
+                total_vouchers = 0
+                used_vouchers = 0
+                expired_vouchers = 0
+                
+                if acc_res.status_code == 200 and acc_data.get("code") == 0:
+                    total_vouchers = acc_data.get("count", 0)
+                    acc_list = acc_data.get("list", [])
+                    for acc in acc_list:
+                        status = str(acc.get("status", "1"))
+                        # status 2: in-use, status 3: expired (စာရွက်စာတမ်း အချက်အလက်များအရ)[span_3](start_span)[span_3](end_span)
+                        if status == "2":
+                            used_vouchers += 1
+                        elif status == "3":
+                            expired_vouchers += 1
                 
                 items_html = ""
                 for index, g in enumerate(group_list, 1):
