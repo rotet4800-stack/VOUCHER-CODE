@@ -17,7 +17,23 @@ class handler(BaseHTTPRequestHandler):
         try:
             # Token အတွက် Request ပို့ခြင်း
             token_res = requests.post(token_url, headers=headers, data=token_payload)
-            token_data = token_res.json()
+            
+            # Error ရှာရန်အတွက် အဖြေကို JSON အနေနဲ့ မဖတ်ခင် ရိုးရိုးစာသားအနေနဲ့ အရင်ဖတ်ထားခြင်း
+            raw_response = token_res.text 
+            
+            # JSON ဖတ်ရန် ကြိုးစားခြင်း
+            try:
+                token_data = token_res.json()
+            except json.decoder.JSONDecodeError:
+                # JSON ဖတ်မရပါက Ruijie မှ ပြန်လာသော မူရင်းစာသားကို မျက်နှာပြင်တွင် ပြပေးရန်
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                error_msg = {"error": "Ruijie API returned invalid JSON", "raw_response": raw_response}
+                self.wfile.write(json.dumps(error_msg).encode('utf-8'))
+                return
+
+            # JSON ဖတ်လို့ရသွားရင် Token ကို ယူမည်
             access_token = token_data.get("accessToken")
             
             if access_token:
@@ -26,7 +42,7 @@ class handler(BaseHTTPRequestHandler):
                 # သတိပြုရန်။ ။ အောက်ပါ voucher_url နှင့် packageId နေရာတွင် သင်၏ Documentation ထဲကအတိုင်း အမှန်ပြန်ပြောင်းထည့်ပေးရန် လိုအပ်ပါသည်။
                 voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/voucher/create?token={access_token}"
                 
-                # Voucher အတွက် သတ်မှတ်ချက်များ (လိုအပ်ပါက Documentation ထဲကအတိုင်း Data များ ထပ်ဖြည့်ပါ)
+                # Voucher အတွက် သတ်မှတ်ချက်များ
                 voucher_payload = json.dumps({
                     "packageId": "123456",  # မိမိထုတ်လိုသော Voucher Package ၏ ID 
                     "quantity": 1           # ထုတ်မည့် Voucher အရေအတွက်
@@ -38,7 +54,7 @@ class handler(BaseHTTPRequestHandler):
                 # အောင်မြင်ပါက Vercel တွင် ပြသရန် 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*') # Website များနှင့် ချိတ်ဆက်နိုင်ရန် (CORS) ဖွင့်ပေးထားခြင်း
+                self.send_header('Access-Control-Allow-Origin', '*') 
                 self.end_headers()
                 
                 # Voucher ထွက်လာသော ရလဒ်ကို မျက်နှာပြင်တွင် ဖော်ပြခြင်း
@@ -52,7 +68,7 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(error_msg).encode('utf-8'))
                 
         except Exception as e:
-            # Code အတွင်း အခြားအမှားအယွင်းရှိပါက ပြသရန်
+            # Code အတွင်း အခြား System Error များရှိပါက ပြသရန်
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
