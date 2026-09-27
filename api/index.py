@@ -40,12 +40,22 @@ class handler(BaseHTTPRequestHandler):
             content_html = ""
             
             if current_tab == 'groups':
+                # User Groups စာရင်း ဆွဲထုတ်ခြင်း
                 ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
                 ug_res = requests.get(ug_url, headers=headers)
                 ug_data = ug_res.json()
                 
-                total_count = ug_data.get("count", 0)
+                total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
+                
+                # ဘောက်ချာ အချက်အလက်များ ဆွဲထုတ်ခြင်း (API 2.4.6)[span_1](start_span)[span_1](end_span)
+                summary_url = f"{BASE_URL}/service/api/open/auth/account/getStatusSummary/{GROUP_ID}?access_token={access_token}&groupId={GROUP_ID}"
+                summary_res = requests.get(summary_url, headers=headers)
+                summary_data = summary_res.json()
+                
+                total_vouchers = summary_data.get("total", "0")
+                used_vouchers = summary_data.get("used", "0")
+                expired_vouchers = summary_data.get("expired", "0")
                 
                 items_html = ""
                 for index, g in enumerate(group_list, 1):
@@ -64,10 +74,15 @@ class handler(BaseHTTPRequestHandler):
                         <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
                         <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                     </div>
-                    <div class="counter">Total Groups: {total_count}</div>
+                    <div class="counter">Total Groups: {total_groups}</div>
                 </div>
                 <div class="scrollable-list">
                     {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">No groups found.</p>'}
+                </div>
+                <div class="footer-summary">
+                    <div class="summary-card">Total: <b>{total_vouchers}</b></div>
+                    <div class="summary-card">In-Use: <b>{used_vouchers}</b></div>
+                    <div class="summary-card">Expired: <b>{expired_vouchers}</b></div>
                 </div>
                 """
             else:
@@ -132,6 +147,9 @@ class handler(BaseHTTPRequestHandler):
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 8px; -webkit-overflow-scrolling: touch; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
+                    .footer-summary {{ flex-shrink: 0; display: flex; gap: 8px; margin-top: 10px; }}
+                    .summary-card {{ flex: 1; background: #ffffff; border: 1px solid #d1e7dd; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }}
+                    .summary-card b {{ display: block; color: #198754; font-size: 14px; margin-top: 2px; }}
                 </style>
             </head>
             <body>
