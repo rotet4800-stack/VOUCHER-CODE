@@ -360,6 +360,11 @@ class handler(BaseHTTPRequestHandler):
                     }});
 
                     async function connectAndPrint(groupName, codes) {{
+                        let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
+                        if (!countStr) return;
+                        let count = parseInt(countStr);
+                        if (isNaN(count) || count <= 0) return;
+
                         try {{
                             const device = await navigator.bluetooth.requestDevice({{
                                 acceptAllDevices: true,
@@ -369,22 +374,16 @@ class handler(BaseHTTPRequestHandler):
                             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                             const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
 
-                            let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
-                            if (!countStr) return;
-                            let count = parseInt(countStr);
-                            if (isNaN(count) || count <= 0) return;
-
                             let encoder = new TextEncoder();
                             let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n";
-                            printData += "=== " + groupName + " ===\\n";
-                            printData += "--------------------------------\\n";
+                            printData += "=== " + groupName + " ===\\n\\n";
                             
                             for (let i = 0; i < count && i < codes.length; i++) {{
-                                printData += "Voucher Code: " + codes[i] + "\\n";
+                                printData += "Voucher Code: " + codes[i] + "\\n\\n\\n";
                             }}
                             
                             printData += "--------------------------------\\n";
-                            printData += "Printed successfully via BLE\\n\\n\\n";
+                            printData += "Printed successfully via BLE\\n\\n\\n\\n";
 
                             await characteristic.writeValue(encoder.encode(printData));
                             alert("ပရင်တာသို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ!");
