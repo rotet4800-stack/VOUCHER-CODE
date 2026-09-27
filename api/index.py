@@ -380,12 +380,16 @@ class handler(BaseHTTPRequestHandler):
                             if (isNaN(count) || count <= 0) return;
 
                             let encoder = new TextEncoder();
-                            let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n";
+                            let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n"; // Initialize and Center align
                             
                             for (let i = 0; i < count && i < codes.length; i++) {
+                                // Double width & height for large clear text
+                                printData += "\\x1D\\x21\\x11"; 
                                 printData += "WIFI-Cafe\\n";
                                 printData += "- " + groupName + " -\\n";
-                                printData += codes[i] + "\\n\\n\\n";
+                                printData += codes[i] + "\\n";
+                                // Reset to normal size for spacing
+                                printData += "\\x1D\\x21\\x00\\n\\n\\n";
                             }
                             
                             printData += "--------------------------------\\n\\n\\n";
