@@ -51,7 +51,6 @@ class handler(BaseHTTPRequestHandler):
                 for index, g in enumerate(group_list, 1):
                     name = g.get("userGroupName") or g.get("name") or "Unknown Group"
                     
-                    # နာမည်များကိုသာ သပ်သပ်ရပ်ရပ် ဖော်ပြမည် (အခြားအချက်အလက်များ ဖျောက်ထားသည်)
                     items_html += f"""
                     <div style="background: #ffffff; padding: 18px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
                         <span style="color: #198754; font-weight: 800; font-size: 16px;">{index}.</span> 
@@ -120,17 +119,17 @@ class handler(BaseHTTPRequestHandler):
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Network Management Dashboard</title>
                 <style>
-                    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #e8f5e9; margin: 0; padding: 16px; color: #323130; }}
-                    .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 88vh; box-sizing: border-box; }}
-                    .sticky-header {{ position: sticky; top: 0; background: #c8e6c9; z-index: 10; padding-bottom: 10px; flex-shrink: 0; }}
-                    .nav-tabs {{ display: flex; gap: 10px; margin-bottom: 15px; }}
+                    html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #e8f5e9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #323130; }}
+                    .container {{ max-width: 500px; height: 100vh; margin: 0 auto; background: #c8e6c9; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 1px solid #a5d6a7; border-right: 1px solid #a5d6a7; }}
+                    .sticky-header {{ flex-shrink: 0; background: #c8e6c9; padding-bottom: 10px; z-index: 10; }}
+                    .nav-tabs {{ display: flex; gap: 10px; margin-bottom: 12px; }}
                     .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.2s; }}
                     .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); margin-bottom: 5px; }}
-                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; margin-top: 5px; }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); }}
+                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 8px; -webkit-overflow-scrolling: touch; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
                 </style>
