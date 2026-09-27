@@ -202,7 +202,7 @@ class handler(BaseHTTPRequestHandler):
                                 <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups" class="back-btn" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
+                                <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
                             </div>
                             <div class="blue-box" style="font-size: 15px; margin-bottom: 4px;">""" + str(selected_group_name) + """</div>
                             <div style="text-align: center; color: #084298; font-weight: 700; font-size: 16px; margin-bottom: 12px;">Generate Voucher Code</div>
@@ -289,7 +289,7 @@ class handler(BaseHTTPRequestHandler):
                                 <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups" class="back-btn" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
+                                <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
                                 <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="width: 45px; background: #0dcaf0; color: #ffffff; border: none; padding: 10px; border-radius: 12px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 8px rgba(13,202,240,0.3);" title="Print">🖨️</button>
                             </div>
@@ -335,7 +335,7 @@ class handler(BaseHTTPRequestHandler):
                         g_id = g.get("id")
                         
                         items_html += f"""
-                        <a href="?tab=groups&group_id={g_id}&group_name={name}" class="group-link" style="text-decoration: none; display: block;">
+                        <a href="?tab=groups&group_id={g_id}&group_name={name}" style="text-decoration: none; display: block;">
                             <div class="blue-card">
                                 <span style="color: #0d6efd; font-weight: 800; font-size: 15px;">{index}.</span> 
                                 <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
@@ -456,8 +456,6 @@ class handler(BaseHTTPRequestHandler):
                             let href = target.getAttribute("href");
                             if (href.startsWith("?") || href.startsWith("/")) {
                                 document.getElementById("loading-overlay").style.display = "flex";
-                                // History State ကို အတိအကျ သတ်မှတ်ပေးခြင်းဖြင့် ဝင်လိုက်ထွက်လိုက်သည့်အခါ စာမျက်နှာမလည်စေရန်
-                                history.replaceState(null, "", href);
                             }
                         }
                     });
