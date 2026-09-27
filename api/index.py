@@ -52,7 +52,7 @@ class handler(BaseHTTPRequestHandler):
                 if selected_group_id:
                     v_list = []
                     
-                    # 1. account/getList ကို စစ်ဆေးခြင်း[span_2](start_span)[span_2](end_span)
+                    # 1. account/getList ဖြင့် အချက်အလက်ဆွဲထုတ်ခြင်း
                     acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
                     acc_res = requests.get(acc_url, headers=headers)
                     if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
@@ -63,7 +63,7 @@ class handler(BaseHTTPRequestHandler):
                                     "status": acc.get("status", "1")
                                 })
                     
-                    # 2. အကယ်၍ မတွေ့သေးပါက voucher/getList ကို ထပ်မံစစ်ဆေးခြင်း[span_3](start_span)[span_3](end_span)
+                    # 2. voucher/getList ဖြင့် ထပ်မံစစ်ဆေးခြင်း
                     if not v_list:
                         v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
                         v_res = requests.get(v_url, headers=headers)
@@ -75,7 +75,6 @@ class handler(BaseHTTPRequestHandler):
                                         "status": v.get("status", "1")
                                     })
 
-                    # 3. အကယ်၍ အုပ်စု ID ဖြင့် တိုက်ရိုက်မတွေ့ပါက ထိုအုပ်စု၏ အကောင့်အားလုံးကို ဖော်ပြပေးရန် Fallback
                     if not v_list and acc_res.status_code == 200:
                         raw_acc = acc_res.json().get("list", [])
                         for acc in raw_acc:
@@ -100,6 +99,7 @@ class handler(BaseHTTPRequestHandler):
                         """
                     
                     content_html = f"""
+                    .sticky-header {{
                     <div class="sticky-header">
                         <div class="nav-tabs">
                             <a href="?tab=devices" class="nav-tab">Connected Devices</a>
@@ -117,13 +117,32 @@ class handler(BaseHTTPRequestHandler):
                     used_vouchers = 0
                     expired_vouchers = 0
                     
-                    summary_url = f"{BASE_URL}/service/api/open/auth/account/getStatusSummary/{GROUP_ID}?access_token={access_token}&groupId={GROUP_ID}"
-                    summary_res = requests.get(summary_url, headers=headers)
-                    summary_data = summary_res.json()
-                    if summary_res.status_code == 200 and summary_data.get("code") == 0:
-                        total_vouchers = summary_data.get("total", 0)
-                        used_vouchers = summary_data.get("used", 0)
-                        expired_vouchers = summary_data.get("expired", 0)
+                    acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                    acc_res = requests.get(acc_url, headers=headers)
+                    if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
+                        acc_list = acc_res.json().get("list", [])
+                        total_vouchers = len(acc_list)
+                        for acc in acc_list:
+                            status = str(acc.get("status", "1"))
+                            if status == "2":
+                                used_vouchers += 1
+                            elif status == "3":
+                                expired_vouchers += 1
+                    
+                    if total_vouchers == 0:
+                        v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                        v_res = requests.get(v_url, headers=headers)
+                        if v_res.status_code == 200:
+                            v_root = v_res.json().get("voucherData", {})
+                            if v_root.get("code") == 0:
+                                v_list = v_root.get("list", [])
+                                total_vouchers = len(v_list)
+                                for v in v_list:
+                                    status = str(v.get("status", "1"))
+                                    if status == "2":
+                                        used_vouchers += 1
+                                    elif status == "3":
+                                        expired_vouchers += 1
 
                     items_html = ""
                     for index, g in enumerate(group_list, 1):
