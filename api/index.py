@@ -17,6 +17,7 @@ class handler(BaseHTTPRequestHandler):
         current_tab = query_params.get('tab', ['devices'])[0]
         selected_group_id = query_params.get('group_id', [None])[0]
         selected_group_name = query_params.get('group_name', ['Group'])[0]
+        action = query_params.get('action', [None])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -39,6 +40,22 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             access_token = token_data.get("accessToken")
+
+            # အကယ်၍ + ခလုတ်နှိပ်ပြီး ဘောက်ချာအသစ်ထုတ်ရန် တောင်းဆိုလာပါက (API 2.3.1)[span_2](start_span)[span_2](end_span)
+            if action == 'create_voucher' and selected_group_id:
+                create_url = f"{BASE_URL}/service/api/open/auth/voucher/create/{GROUP_ID}?access_token={access_token}"
+                create_payload = json.dumps({
+                    "quantity": 1,
+                    "profile": "30113648274480073538014045592098",
+                    "userGroupId": int(selected_group_id)
+                })
+                requests.post(create_url, headers=headers, data=create_payload, timeout=5)
+                
+                # ထုတ်ပြီးပါက သက်ဆိုင်ရာအုပ်စုစာမျက်နှာသို့ ပြန်လည်ညွှန်းမည်
+                self.send_response(302)
+                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
+                self.end_headers()
+                return
 
             content_html = ""
             
@@ -112,7 +129,10 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=devices" class="nav-tab">Connected Devices</a>
                             <a href="?tab=groups" class="nav-tab active">User Groups</a>
                         </div>
-                        <a href="?tab=groups" style="display: block; text-align: center; background: #cfe2ff; color: #084298; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; margin-bottom: 8px; border: 1px solid #b6d4fe;">Back to Groups</a>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
+                            <a href="?tab=groups&action=create_voucher&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 50px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                        </div>
                         <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
                     </div>
                     <div class="scrollable-list">
@@ -247,7 +267,6 @@ class handler(BaseHTTPRequestHandler):
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #adb5bd; border-radius: 10px; }}
                     
-                    /* Loading Overlay Spinner */
                     #loading-overlay {{
                         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                         background: rgba(233, 236, 239, 0.85); display: none;
