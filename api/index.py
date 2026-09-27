@@ -3,6 +3,7 @@ import requests
 import json
 import traceback
 from urllib.parse import urlparse, parse_qs
+from concurrent.futures import ThreadPoolExecutor
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -30,7 +31,7 @@ class handler(BaseHTTPRequestHandler):
         try:
             token_url = f"{BASE_URL}/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
             token_payload = json.dumps({"appid": APP_ID, "secret": SECRET})
-            token_res = requests.post(token_url, headers=headers, data=token_payload)
+            token_res = requests.post(token_url, headers=headers, data=token_payload, timeout=5)
             token_data = token_res.json()
             
             if token_res.status_code != 200 or token_data.get("code") != 0:
@@ -42,20 +43,29 @@ class handler(BaseHTTPRequestHandler):
             content_html = ""
             
             if current_tab == 'groups':
-                ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
-                ug_res = requests.get(ug_url, headers=headers)
-                ug_data = ug_res.json()
-                
+                # ThreadPoolExecutor သုံးပြီး API နှစ်ခုကို တစ်ပြိုင်နက်တည်း (Parallel) မြန်ဆန်စွာ ဆွဲထုတ်မည်
+                def fetch_groups():
+                    url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+                    return requests.get(url, headers=headers, timeout=5).json()
+
+                def fetch_accounts():
+                    url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                    return requests.get(url, headers=headers, timeout=5).json()
+
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    future_ug = executor.submit(fetch_groups)
+                    future_acc = executor.submit(fetch_accounts)
+                    
+                    ug_data = future_ug.result()
+                    acc_res_json = future_acc.result()
+
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
                 if selected_group_id:
                     v_list = []
-                    
-                    acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                    acc_res = requests.get(acc_url, headers=headers)
-                    if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
-                        for acc in acc_res.json().get("list", []):
+                    if acc_res_json.get("code") == 0:
+                        for acc in acc_res_json.get("list", []):
                             if str(acc.get("userGroupId")) == str(selected_group_id) or str(acc.get("groupId")) == str(selected_group_id):
                                 v_list.append({
                                     "codeNo": acc.get("username") or acc.get("account"),
@@ -64,18 +74,19 @@ class handler(BaseHTTPRequestHandler):
                     
                     if not v_list:
                         v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                        v_res = requests.get(v_url, headers=headers)
-                        if v_res.status_code == 200 and v_res.json().get("voucherData", {}).get("code") == 0:
-                            for v in v_res.json().get("voucherData", {}).get("list", []):
-                                if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
-                                    v_list.append({
-                                        "codeNo": v.get("codeNo") or v.get("voucherCode"),
-                                        "status": v.get("status", "1")
-                                    })
+                        v_res = requests.get(v_url, headers=headers, timeout=5)
+                        if v_res.status_code == 200:
+                            v_root = v_res.json().get("voucherData", {})
+                            if v_root.get("code") == 0:
+                                for v in v_root.get("list", []):
+                                    if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
+                                        v_list.append({
+                                            "codeNo": v.get("codeNo") or v.get("voucherCode"),
+                                            "status": v.get("status", "1")
+                                        })
 
-                    if not v_list and acc_res.status_code == 200:
-                        raw_acc = acc_res.json().get("list", [])
-                        for acc in raw_acc:
+                    if not v_list and acc_res_json.get("code") == 0:
+                        for acc in acc_res_json.get("list", []):
                             v_list.append({
                                 "codeNo": acc.get("username") or acc.get("account"),
                                 "status": acc.get("status", "1")
@@ -114,10 +125,8 @@ class handler(BaseHTTPRequestHandler):
                     used_vouchers = 0
                     expired_vouchers = 0
                     
-                    acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                    acc_res = requests.get(acc_url, headers=headers)
-                    if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
-                        acc_list = acc_res.json().get("list", [])
+                    if acc_res_json.get("code") == 0:
+                        acc_list = acc_res_json.get("list", [])
                         total_vouchers = len(acc_list)
                         for acc in acc_list:
                             status = str(acc.get("status", "1"))
@@ -128,7 +137,7 @@ class handler(BaseHTTPRequestHandler):
                     
                     if total_vouchers == 0:
                         v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                        v_res = requests.get(v_url, headers=headers)
+                        v_res = requests.get(v_url, headers=headers, timeout=5)
                         if v_res.status_code == 200:
                             v_root = v_res.json().get("voucherData", {})
                             if v_root.get("code") == 0:
@@ -174,7 +183,7 @@ class handler(BaseHTTPRequestHandler):
                     """
             else:
                 client_url = f"{BASE_URL}/service/api/open/v1/dev/user/current-user?group_id={GROUP_ID}&page_index=1&page_size=100&access_token={access_token}"
-                client_res = requests.get(client_url, headers=headers)
+                client_res = requests.get(client_url, headers=headers, timeout=5)
                 client_data = client_res.json()
                 
                 total_count = client_data.get("totalCount", 0)
