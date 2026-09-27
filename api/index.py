@@ -7,11 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-
         parsed_url = urlparse(self.path)
         query_params = parse_qs(parsed_url.query)
         current_tab = query_params.get('tab', ['devices'])[0]
@@ -36,16 +31,17 @@ class handler(BaseHTTPRequestHandler):
             token_data = token_res.json()
             
             if token_res.status_code != 200 or token_data.get("code") != 0:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
                 self.wfile.write("<h3>Failed to fetch token</h3>".encode('utf-8'))
                 return
 
             access_token = token_data.get("accessToken")
 
-            # အကယ်၍ ဘောက်ချာအသစ်ထုတ်ရန် Form တင်သွင်းလာပါက (API 2.3.1)[span_1](start_span)[span_1](end_span)
             if action == 'generate_now' and selected_group_id:
                 quantity = int(query_params.get('quantity', [1])[0])
                 
-                # အရင်ဆုံး profile နှင့် userGroupId ကို User Group List မှ ရယူမည် (API 2.7.1)[span_2](start_span)[span_2](end_span)
                 ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
                 ug_res = requests.get(ug_url, headers=headers, timeout=5)
                 profile_id = "30113648274480073538014045592098"
@@ -67,18 +63,35 @@ class handler(BaseHTTPRequestHandler):
                 })
                 requests.post(create_url, headers=headers, data=create_payload, timeout=5)
                 
-                self.send_response(302)
+                self.send_response(303)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
                 self.end_headers()
                 return
 
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
             content_html = ""
             
             if current_tab == 'groups':
-                ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
-                ug_res = requests.get(ug_url, headers=headers)
-                ug_data = ug_res.json()
-                
+                def fetch_groups():
+                    url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+                    return requests.get(url, headers=headers, timeout=5).json()
+
+                def fetch_accounts():
+                    url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                    return requests.get(url, headers=headers, timeout=5).json()
+
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    future_ug = executor.submit(fetch_groups)
+                    future_acc = executor.submit(fetch_accounts)
+                    
+                    ug_data = future_ug.result()
+                    acc_res_json = future_acc.result()
+
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
@@ -125,10 +138,8 @@ class handler(BaseHTTPRequestHandler):
                         """
                     else:
                         v_list = []
-                        acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                        acc_res = requests.get(acc_url, headers=headers)
-                        if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
-                            for acc in acc_res.json().get("list", []):
+                        if acc_res_json.get("code") == 0:
+                            for acc in acc_res_json.get("list", []):
                                 if str(acc.get("userGroupId")) == str(selected_group_id) or str(acc.get("groupId")) == str(selected_group_id):
                                     v_list.append({
                                         "codeNo": acc.get("username") or acc.get("account"),
@@ -148,8 +159,8 @@ class handler(BaseHTTPRequestHandler):
                                                 "status": v.get("status", "1")
                                             })
 
-                        if not v_list and acc_res.status_code == 200:
-                            raw_acc = acc_res.json().get("list", [])
+                        if not v_list and acc_res_json.get("code") == 0:
+                            raw_acc = acc_res_json.get("list", [])
                             for acc in raw_acc:
                                 v_list.append({
                                     "codeNo": acc.get("username") or acc.get("account"),
@@ -188,11 +199,6 @@ class handler(BaseHTTPRequestHandler):
                         </div>
                         """
                 else:
-                    def fetch_accounts():
-                        url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                        return requests.get(url, headers=headers, timeout=5).json()
-
-                    acc_res_json = fetch_accounts()
                     total_vouchers = 0
                     used_vouchers = 0
                     expired_vouchers = 0
@@ -358,6 +364,9 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(html_content.encode('utf-8'))
             
         except Exception as e:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html; charset=utf-8')
+            self.end_headers()
             self.wfile.write(f"<h3>System Error: {str(e)}</h3>".encode('utf-8'))
         
         return
