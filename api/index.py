@@ -102,7 +102,7 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=devices" class="nav-tab">Connected Devices</a>
                             <a href="?tab=groups" class="nav-tab active">User Groups</a>
                         </div>
-                        <a href="?tab=groups" style="display: block; text-align: center; background: #cfe2ff; color: #084298; padding: 8px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px; margin-bottom: 6px; border: 1px solid #b6d4fe;">Back to Groups</a>
+                        <a href="?tab=groups" style="display: block; text-align: center; background: #cfe2ff; color: #084298; padding: 10px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; margin-bottom: 8px; border: 1px solid #b6d4fe;">Back to Groups</a>
                         <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
                     </div>
                     <div class="scrollable-list">
@@ -162,7 +162,7 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                         </div>
                         <div class="blue-box">Total Groups: {total_groups}</div>
-                        <div class="footer-summary" style="margin-top: 6px;">
+                        <div class="footer-summary" style="margin-top: 8px;">
                             <div class="summary-card">Total: <b>{total_vouchers}</b></div>
                             <div class="summary-card">In-Use: <b>{used_vouchers}</b></div>
                             <div class="summary-card">Expired: <b>{expired_vouchers}</b></div>
@@ -228,13 +228,13 @@ class handler(BaseHTTPRequestHandler):
                     .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #cfe2ff; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #0d6efd; border-right: 2px solid #0d6efd; }}
                     .sticky-header {{ flex-shrink: 0; background: #cfe2ff; padding-bottom: 6px; z-index: 10; }}
                     .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-                    .nav-tab {{ flex: 1; text-align: center; padding: 8px; background: #9ec5fe; color: #084298; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #86b7fe; }}
+                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #9ec5fe; color: #084298; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #86b7fe; }}
                     .nav-tab.active {{ background: #0d6efd; color: #ffffff; box-shadow: 0 3px 6px rgba(13,110,253,0.3); border-color: #0b5ed7; }}
-                    .blue-box {{ background: #0d6efd; color: #ffffff; padding: 12px; border-radius: 12px; text-align: center; font-size: 15px; font-weight: 700; box-shadow: 0 4px 8px rgba(13,110,253,0.3); margin-bottom: 6px; border: 2px solid #084298; }}
+                    .blue-box {{ background: #0d6efd; color: #ffffff; padding: 16px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 700; box-shadow: 0 4px 10px rgba(13,110,253,0.3); margin-bottom: 8px; border: 2px solid #084298; }}
                     .blue-card {{ background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #0d6efd; box-shadow: 0 2px 4px rgba(13,110,253,0.08); display: flex; align-items: center; gap: 12px; }}
                     .footer-summary {{ display: flex; gap: 6px; }}
-                    .summary-card {{ flex: 1; background: #ffffff; border: 2px solid #0d6efd; padding: 8px 4px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(13,110,253,0.05); }}
-                    .summary-card b {{ display: block; color: #0d6efd; font-size: 13px; margin-top: 2px; }}
+                    .summary-card {{ flex: 1; background: #ffffff; border: 2px solid #0d6efd; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(13,110,253,0.05); }}
+                    .summary-card b {{ display: block; color: #0d6efd; font-size: 14px; margin-top: 2px; }}
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #9ec5fe; border-radius: 10px; }}
