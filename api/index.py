@@ -60,9 +60,9 @@ class handler(BaseHTTPRequestHandler):
                     name = g.get("userGroupName") or g.get("name") or "Unknown Group"
                     
                     items_html += f"""
-                    <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
-                        <span style="color: #198754; font-weight: 800; font-size: 16px;">{index}.</span> 
-                        <span style="font-size: 16px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
+                    <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
+                        <span style="color: #198754; font-weight: 800; font-size: 15px;">{index}.</span> 
+                        <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
                     </div>
                     """
                 
@@ -98,17 +98,17 @@ class handler(BaseHTTPRequestHandler):
                     band = client.get("band") or "-"
                     
                     items_html += f"""
-                    <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div>
-                            <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 14px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #198754; font-weight: 800;">{index}.</span> 
                                 <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
                             </div>
-                            <div style="font-size: 13px; color: #605e5c; margin-top: 4px; padding-left: 20px;">
+                            <div style="font-size: 12px; color: #605e5c; margin-top: 2px; padding-left: 20px;">
                                 Model: <b style="color: #323130;">{model}</b>
                             </div>
                         </div>
-                        <div style="background: #d1e7dd; color: #0f5132; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #badbcc;">
+                        <div style="background: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #badbcc;">
                             {band}
                         </div>
                     </div>
@@ -136,16 +136,16 @@ class handler(BaseHTTPRequestHandler):
                 <title>Network Management Dashboard</title>
                 <style>
                     html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #e8f5e9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #323130; }}
-                    .container {{ max-width: 500px; height: 100vh; margin: 0 auto; background: #c8e6c9; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 1px solid #a5d6a7; border-right: 1px solid #a5d6a7; }}
-                    .sticky-header {{ flex-shrink: 0; background: #c8e6c9; padding-bottom: 8px; z-index: 10; }}
-                    .nav-tabs {{ display: flex; gap: 10px; margin-bottom: 10px; }}
-                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.2s; }}
+                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #c8e6c9; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 1px solid #a5d6a7; border-right: 1px solid #a5d6a7; }}
+                    .sticky-header {{ flex-shrink: 0; background: #c8e6c9; padding-bottom: 6px; z-index: 10; }}
+                    .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
+                    .nav-tab {{ flex: 1; text-align: center; padding: 8px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; }}
                     .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-align: center; font-size: 15px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); }}
-                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; margin-bottom: 6px; -webkit-overflow-scrolling: touch; }}
-                    .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
+                    .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; margin-bottom: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
+                    .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
-                    .footer-summary {{ flex-shrink: 0; display: flex; gap: 8px; padding-top: 4px; }}
+                    .footer-summary {{ flex-shrink: 0; display: flex; gap: 8px; padding-top: 2px; }}
                     .summary-card {{ flex: 1; background: #ffffff; border: 1px solid #d1e7dd; padding: 8px 4px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }}
                     .summary-card b {{ display: block; color: #198754; font-size: 13px; margin-top: 2px; }}
                 </style>
