@@ -15,7 +15,7 @@ class handler(BaseHTTPRequestHandler):
             'Accept': 'application/json'
         }
         
-        # ၁။ Access Token တောင်းယူခြင်း[span_5](start_span)[span_5](end_span)
+        # ၁။ Access Token တောင်းယူခြင်း
         token_url = "https://cloud-as.ruijienetworks.com/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
         token_payload = json.dumps({
             "appid": "openc3be644fb5dc",
@@ -31,30 +31,14 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Token မရရှိပါ။", "details": token_data}).encode('utf-8'))
                 return
 
-            # ၂။ Group ID ရယူရန် Network Group List လှမ်းခေါ်ခြင်း[span_6](start_span)[span_6](end_span)
-            group_url = f"https://cloud-as.ruijienetworks.com/service/api/group/single/tree?depth=BUILDING&access_token={access_token}"
-            group_res = requests.get(group_url, headers=headers)
-            group_data = group_res.json()
+            # --- ဤနေရာတွင် သင်၏ Ruijie Cloud ထဲမှ မှန်ကန်သော Group ID (Project ID) ကို ထည့်ပါ ---
+            # ဥပမာ - group_id = 12482
+            group_id = 12482  # <-- ဒီနံပါတ်ကို သင့်အကောင့်ထဲက ID အမှန်နဲ့ လဲပေးပါ
             
-            # Group ID ကို ရှာဖွေခြင်း (ပထမဆုံးတွေ့သည့် Group ID ကို ယူမည်)
-            group_id = None
-            try:
-                # Documentation ဖွဲ့စည်းပုံအရ groups အောက်မှ groupId ကို ယူမည်[span_7](start_span)[span_7](end_span)
-                groups_info = group_data.get("groups", {})
-                if "subGroups" in groups_info and len(groups_info["subGroups"]) > 0:
-                    group_id = groups_info["subGroups"][0]["groupId"]
-                else:
-                    group_id = groups_info.get("groupId", 0)
-            except Exception:
-                group_id = 0
-
-            if not group_id:
-                group_id = 0  # ရှာမတွေ့ပါက Default 0 ဖြင့် သုံးမည်
-
-            # ၃။ Voucher ထုတ်လုပ်ခြင်း (Generate Voucher API)[span_8](start_span)[span_8](end_span)
+            # ၂။ Voucher ထုတ်လုပ်ခြင်း (Generate Voucher API)
             voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/create/{group_id}?access_token={access_token}"
             
-            # Documentation တွင် ဖော်ပြထားသော လိုအပ်သော Parameter များ[span_9](start_span)[span_9](end_span)
+            # Voucher အတွက် လိုအပ်သော Parameter များ (Documentation ထဲကအတိုင်း)
             voucher_payload = json.dumps({
                 "quantity": 1,
                 "profile": "30113648274480073538014045592098", # သင့်အကောင့်ထဲရှိ Profile UUID ဖြင့် လဲရန်
@@ -64,7 +48,7 @@ class handler(BaseHTTPRequestHandler):
             voucher_res = requests.post(voucher_url, headers=headers, data=voucher_payload)
             voucher_data = voucher_res.json()
             
-            # ရလဒ်ကို ပြသခြင်း[span_10](start_span)[span_10](end_span)
+            # ရလဒ်ကို ပြသခြင်း
             self.wfile.write(json.dumps(voucher_data).encode('utf-8'))
             
         except Exception as e:
