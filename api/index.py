@@ -1,13 +1,22 @@
 from http.server import BaseHTTPRequestHandler
 import requests
 import json
+import traceback
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # API များကို ခေါ်ယူရာတွင် အသုံးပြုမည့် ခေါင်းစဉ် (Header)
-        headers = { 'Content-Type': 'application/json' }
+        # အဖြေကို 200 OK အနေဖြင့် အမြဲပေးမည် (Error ဖမ်းရလွယ်အောင်)
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
         
-        # ၁။ Access Token အရင် တောင်းယူခြင်း
+        # အဆင့် (၁) - Token တောင်းယူခြင်း
         token_url = "https://cloud-as.ruijienetworks.com/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
         token_payload = json.dumps({
             "appid": "openc3be644fb5dc",
@@ -15,64 +24,61 @@ class handler(BaseHTTPRequestHandler):
         })
         
         try:
-            # Token အတွက် Request ပို့ခြင်း
             token_res = requests.post(token_url, headers=headers, data=token_payload)
             
-            # Error ရှာရန်အတွက် အဖြေကို JSON အနေနဲ့ မဖတ်ခင် ရိုးရိုးစာသားအနေနဲ့ အရင်ဖတ်ထားခြင်း
-            raw_response = token_res.text 
-            
-            # JSON ဖတ်ရန် ကြိုးစားခြင်း
+            # Token အဖြေကို JSON ဖတ်ကြည့်မည်
             try:
                 token_data = token_res.json()
-            except json.decoder.JSONDecodeError:
-                # JSON ဖတ်မရပါက Ruijie မှ ပြန်လာသော မူရင်းစာသားကို မျက်နှာပြင်တွင် ပြပေးရန်
-                self.send_response(500)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                error_msg = {"error": "Ruijie API returned invalid JSON", "raw_response": raw_response}
-                self.wfile.write(json.dumps(error_msg).encode('utf-8'))
+            except Exception:
+                # Token လင့်ခ်က JSON ပြန်မပေးပါက
+                self.wfile.write(json.dumps({
+                    "error_at": "Step 1 (Token Request)",
+                    "status_code": token_res.status_code,
+                    "ruijie_response": token_res.text
+                }).encode('utf-8'))
+                return
+            
+            access_token = token_data.get("accessToken")
+            if not access_token:
+                self.wfile.write(json.dumps({
+                    "error_at": "Step 1 (Parsing Token)",
+                    "message": "Token မပါလာပါ။",
+                    "ruijie_response": token_data
+                }).encode('utf-8'))
                 return
 
-            # JSON ဖတ်လို့ရသွားရင် Token ကို ယူမည်
-            access_token = token_data.get("accessToken")
+            # အဆင့် (၂) - Voucher ထုတ်ခြင်း
+            # မှတ်ချက် - ဤ URL ကို လက်စွဲစာအုပ်ထဲမှ အမှန်ဖြင့် အစားထိုးရန် လိုအပ်နိုင်ပါသည်။
+            voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/v1/voucher/create?token={access_token}"
+            voucher_payload = json.dumps({
+                "packageId": "123456", # မိမိ၏ Package ID အမှန်
+                "quantity": 1
+            })
+
+            voucher_res = requests.post(voucher_url, headers=headers, data=voucher_payload)
             
-            if access_token:
-                # ၂။ ရလာတဲ့ Access Token ကို သုံးပြီး Voucher အသစ် ဖန်တီးခြင်း
-                
-                # သတိပြုရန်။ ။ အောက်ပါ voucher_url နှင့် packageId နေရာတွင် သင်၏ Documentation ထဲကအတိုင်း အမှန်ပြန်ပြောင်းထည့်ပေးရန် လိုအပ်ပါသည်။
-                voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/voucher/create?token={access_token}"
-                
-                # Voucher အတွက် သတ်မှတ်ချက်များ
-                voucher_payload = json.dumps({
-                    "packageId": "123456",  # မိမိထုတ်လိုသော Voucher Package ၏ ID 
-                    "quantity": 1           # ထုတ်မည့် Voucher အရေအတွက်
-                })
-                
-                # Voucher ထုတ်ရန် Request ဆက်ပို့ခြင်း
-                voucher_res = requests.post(voucher_url, headers=headers, data=voucher_payload)
-                
-                # အောင်မြင်ပါက Vercel တွင် ပြသရန် 
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*') 
-                self.end_headers()
-                
-                # Voucher ထွက်လာသော ရလဒ်ကို မျက်နှာပြင်တွင် ဖော်ပြခြင်း
-                self.wfile.write(json.dumps(voucher_res.json()).encode('utf-8'))
-            else:
-                # Token မရပါက အမှားပြရန်
-                self.send_response(401)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                error_msg = {"error": "Failed to get access token", "details": token_data}
-                self.wfile.write(json.dumps(error_msg).encode('utf-8'))
-                
+            # Voucher အဖြေကို JSON ဖတ်ကြည့်မည်
+            try:
+                voucher_data = voucher_res.json()
+            except Exception:
+                # Voucher လင့်ခ်က JSON ပြန်မပေးပါက ဤနေရာတွင် အတိအကျ ပြမည်
+                self.wfile.write(json.dumps({
+                    "error_at": "Step 2 (Voucher Request)",
+                    "status_code": voucher_res.status_code,
+                    "ruijie_response": voucher_res.text,
+                    "used_url": voucher_url
+                }).encode('utf-8'))
+                return
+            
+            # အားလုံးအောင်မြင်ပါက Voucher Data ကို ပြမည်
+            self.wfile.write(json.dumps(voucher_data).encode('utf-8'))
+            
         except Exception as e:
-            # Code အတွင်း အခြား System Error များရှိပါက ပြသရန်
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            error_msg = {"error": "Internal Server Error", "message": str(e)}
-            self.wfile.write(json.dumps(error_msg).encode('utf-8'))
+            # Code အတွင်း အခြား Error ရှိပါက
+            self.wfile.write(json.dumps({
+                "error_at": "System Code",
+                "message": str(e),
+                "traceback": traceback.format_exc()
+            }).encode('utf-8'))
         
         return
