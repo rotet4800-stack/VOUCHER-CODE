@@ -33,37 +33,36 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # ၂။ ဖုန်း/စက်ပစ္စည်းစာရင်း ဆွဲထုတ်ခြင်း
-            client_url = f"{BASE_URL}/service/api/open/v1/dev/user/current-user?group_id={GROUP_ID}&page_index=1&page_size=100&access_token={access_token}"
-            client_res = requests.get(client_url, headers=headers)
-            client_data = client_res.json()
+            # ၂။ User Group List အစစ်အမှန် ဆွဲထုတ်ခြင်း (API 2.7.1)
+            ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+            ug_res = requests.get(ug_url, headers=headers)
+            ug_data = ug_res.json()
             
-            if client_res.status_code != 200 or client_data.get("code") != 0:
-                self.wfile.write("<h3>ချိတ်ဆက်မှုစာရင်း ရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
+            if ug_res.status_code != 200 or ug_data.get("code") != 0:
+                self.wfile.write(f"<h3>User Group စာရင်း ရယူရန် မအောင်မြင်ပါ: {ug_data.get('msg')}</h3>".encode('utf-8'))
                 return
 
-            total_count = client_data.get("totalCount", 0)
-            raw_list = client_data.get("list", [])
+            total_count = ug_data.get("count", 0)
+            group_list = ug_data.get("data", [])
             
-            devices_html = ""
-            for index, client in enumerate(raw_list, 1):
-                brand = client.get("manufacturer") or "Unknown"
-                model = client.get("staModel") or client.get("userName") or "Mobile Device"
-                band = client.get("band") or "-"
+            groups_html = ""
+            for index, g in enumerate(group_list, 1):
+                name = g.get("userGroupName") or g.get("name") or "Unknown Group"
+                ug_id = g.get("id")
+                profile_id = g.get("authProfileId")
+                quota = g.get("quota", 0)
+                devices = g.get("noOfDevice", 0)
                 
-                devices_html += f"""
-                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                    <div>
-                        <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #198754; font-weight: 800;">{index}.</span> 
-                            <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
-                        </div>
-                        <div style="font-size: 13px; color: #605e5c; margin-top: 4px; padding-left: 20px;">
-                            Model: <b style="color: #323130;">{model}</b>
-                        </div>
+                groups_html += f"""
+                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-size: 16px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="color: #198754; font-weight: 800;">{index}.</span> 
+                        <span style="letter-spacing: 0.5px;">{name}</span>
                     </div>
-                    <div style="background: #d1e7dd; color: #0f5132; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #badbcc;">
-                        {band}
+                    <div style="font-size: 13px; color: #605e5c; display: flex; flex-direction: column; gap: 4px; padding-left: 20px;">
+                        <div>Group ID: <b style="color: #323130;">{ug_id}</b></div>
+                        <div>Profile ID: <b style="color: #323130; word-break: break-all;">{profile_id}</b></div>
+                        <div>Traffic Quota: <b style="color: #198754;">{quota} MB</b></div>
                     </div>
                 </div>
                 """
@@ -74,7 +73,7 @@ class handler(BaseHTTPRequestHandler):
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Connected Devices Overview</title>
+                <title>User Group Management</title>
                 <style>
                     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #e8f5e9; margin: 0; padding: 16px; color: #323130; }}
                     .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 85vh; box-sizing: border-box; }}
@@ -89,11 +88,11 @@ class handler(BaseHTTPRequestHandler):
             <body>
                 <div class="container">
                     <div class="sticky-header">
-                        <h2>ကြိုးမဲ့အင်တာနက် ချိတ်ဆက်ထားသော စက်များ</h2>
-                        <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
+                        <h2>အသုံးပြုသူ အုပ်စုများ (User Groups)</h2>
+                        <div class="counter">စုစုပေါင်း အုပ်စုအရေအတွက်: {total_count} ခု</div>
                     </div>
                     <div class="scrollable-list">
-                        {devices_html if devices_html else '<p style="text-align:center; color:#2e7d32;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}
+                        {groups_html if groups_html else '<p style="text-align:center; color:#2e7d32;">အုပ်စု အချက်အလက် မရှိသေးပါ။</p>'}
                     </div>
                 </div>
             </body>
