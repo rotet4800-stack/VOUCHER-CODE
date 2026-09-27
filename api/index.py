@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import requests
 import json
 import traceback
+from urllib.parse import urlparse, parse_qs
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -9,6 +10,11 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
+
+        # URL query parameters ကို စစ်ဆေးခြင်း (ဥပမာ ?tab=devices သို့မဟုတ် ?tab=groups)
+        parsed_url = urlparse(self.path)
+        query_params = parse_qs(parsed_url.query)
+        current_tab = query_params.get('tab', ['devices'])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -33,37 +39,80 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # ၂။ User Group List အစစ်အမှန် ဆွဲထုတ်ခြင်း (API 2.7.1)
-            ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
-            ug_res = requests.get(ug_url, headers=headers)
-            ug_data = ug_res.json()
+            content_html = ""
             
-            if ug_res.status_code != 200 or ug_data.get("code") != 0:
-                self.wfile.write(f"<h3>User Group စာရင်း ရယူရန် မအောင်မြင်ပါ: {ug_data.get('msg')}</h3>".encode('utf-8'))
-                return
-
-            total_count = ug_data.get("count", 0)
-            group_list = ug_data.get("data", [])
-            
-            groups_html = ""
-            for index, g in enumerate(group_list, 1):
-                name = g.get("userGroupName") or g.get("name") or "Unknown Group"
-                ug_id = g.get("id")
-                profile_id = g.get("authProfileId")
-                quota = g.get("quota", 0)
-                devices = g.get("noOfDevice", 0)
+            if current_tab == 'groups':
+                # --- Feature 2: User Groups Data ---
+                ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+                ug_res = requests.get(ug_url, headers=headers)
+                ug_data = ug_res.json()
                 
-                groups_html += f"""
-                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                    <div style="font-size: 16px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <span style="color: #198754; font-weight: 800;">{index}.</span> 
-                        <span style="letter-spacing: 0.5px;">{name}</span>
+                total_count = ug_data.get("count", 0)
+                group_list = ug_data.get("data", [])
+                
+                items_html = ""
+                for index, g in enumerate(group_list, 1):
+                    name = g.get("userGroupName") or g.get("name") or "Unknown Group"
+                    ug_id = g.get("id")
+                    profile_id = g.get("authProfileId")
+                    quota = g.get("quota", 0)
+                    
+                    items_html += f"""
+                    <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="color: #198754; font-weight: 800;">{index}.</span> 
+                            <span style="letter-spacing: 0.5px;">{name}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #605e5c; display: flex; flex-direction: column; gap: 4px; padding-left: 20px;">
+                            <div>Group ID: <b style="color: #323130;">{ug_id}</b></div>
+                            <div>Profile ID: <b style="color: #323130; word-break: break-all;">{profile_id}</b></div>
+                            <div>Traffic Quota: <b style="color: #198754;">{quota} MB</b></div>
+                        </div>
                     </div>
-                    <div style="font-size: 13px; color: #605e5c; display: flex; flex-direction: column; gap: 4px; padding-left: 20px;">
-                        <div>Group ID: <b style="color: #323130;">{ug_id}</b></div>
-                        <div>Profile ID: <b style="color: #323130; word-break: break-all;">{profile_id}</b></div>
-                        <div>Traffic Quota: <b style="color: #198754;">{quota} MB</b></div>
+                    """
+                
+                content_html = f"""
+                <div class="counter">စုစုပေါင်း အုပ်စုအရေအတွက်: {total_count} ခု</div>
+                <div class="scrollable-list">
+                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">အချက်အလက် မရှိသေးပါ။</p>'}
+                </div>
+                """
+            else:
+                # --- Feature 1: Connected Devices Data ---
+                client_url = f"{BASE_URL}/service/api/open/v1/dev/user/current-user?group_id={GROUP_ID}&page_index=1&page_size=100&access_token={access_token}"
+                client_res = requests.get(client_url, headers=headers)
+                client_data = client_res.json()
+                
+                total_count = client_data.get("totalCount", 0)
+                raw_list = client_data.get("list", [])
+                
+                items_html = ""
+                for index, client in enumerate(raw_list, 1):
+                    brand = client.get("manufacturer") or "Unknown"
+                    model = client.get("staModel") or client.get("userName") or "Mobile Device"
+                    band = client.get("band") or "-"
+                    
+                    items_html += f"""
+                    <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div>
+                            <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #198754; font-weight: 800;">{index}.</span> 
+                                <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
+                            </div>
+                            <div style="font-size: 13px; color: #605e5c; margin-top: 4px; padding-left: 20px;">
+                                Model: <b style="color: #323130;">{model}</b>
+                            </div>
+                        </div>
+                        <div style="background: #d1e7dd; color: #0f5132; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #badbcc;">
+                            {band}
+                        </div>
                     </div>
+                    """
+                
+                content_html = f"""
+                <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
+                <div class="scrollable-list">
+                    {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}
                 </div>
                 """
 
@@ -73,14 +122,16 @@ class handler(BaseHTTPRequestHandler):
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>User Group Management</title>
+                <title>Network Management Dashboard</title>
                 <style>
                     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #e8f5e9; margin: 0; padding: 16px; color: #323130; }}
-                    .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 85vh; box-sizing: border-box; }}
-                    h2 {{ color: #1b5e20; text-align: center; margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; }}
+                    .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 88vh; box-sizing: border-box; }}
                     .sticky-header {{ position: sticky; top: 0; background: #c8e6c9; z-index: 10; padding-bottom: 10px; }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); }}
-                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; margin-top: 5px; }}
+                    .nav-tabs {{ display: flex; gap: 10px; margin-bottom: 15px; }}
+                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; transition: all 0.2s; }}
+                    .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); margin-bottom: 10px; }}
+                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
                 </style>
@@ -88,12 +139,12 @@ class handler(BaseHTTPRequestHandler):
             <body>
                 <div class="container">
                     <div class="sticky-header">
-                        <h2>အသုံးပြုသူ အုပ်စုများ (User Groups)</h2>
-                        <div class="counter">စုစုပေါင်း အုပ်စုအရေအတွက်: {total_count} ခု</div>
+                        <div class="nav-tabs">
+                            <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">ချိတ်ဆက်ထားသော စက်များ</a>
+                            <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">အသုံးပြုသူ အုပ်စုများ</a>
+                        </div>
                     </div>
-                    <div class="scrollable-list">
-                        {groups_html if groups_html else '<p style="text-align:center; color:#2e7d32;">အုပ်စု အချက်အလက် မရှိသေးပါ။</p>'}
-                    </div>
+                    {content_html}
                 </div>
             </body>
             </html>
