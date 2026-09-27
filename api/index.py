@@ -43,7 +43,6 @@ class handler(BaseHTTPRequestHandler):
             content_html = ""
             
             if current_tab == 'groups':
-                # ThreadPoolExecutor သုံးပြီး API နှစ်ခုကို တစ်ပြိုင်နက်တည်း (Parallel) မြန်ဆန်စွာ ဆွဲထုတ်မည်
                 def fetch_groups():
                     url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
                     return requests.get(url, headers=headers, timeout=5).json()
@@ -247,12 +246,39 @@ class handler(BaseHTTPRequestHandler):
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #adb5bd; border-radius: 10px; }}
+                    
+                    /* Loading Overlay Spinner */
+                    #loading-overlay {{
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                        background: rgba(233, 236, 239, 0.85); display: none;
+                        justify-content: center; align-items: center; z-index: 9999;
+                    }}
+                    .spinner {{
+                        width: 45px; height: 45px; border: 5px solid #ced4da;
+                        border-top: 5px solid #0d6efd; border-radius: 50%;
+                        animation: spin 0.7s linear infinite;
+                    }}
+                    @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
                 </style>
             </head>
             <body>
+                <div id="loading-overlay">
+                    <div class="spinner"></div>
+                </div>
                 <div class="container">
                     {content_html}
                 </div>
+                <script>
+                    document.addEventListener("click", function(e) {{
+                        let target = e.target.closest("a");
+                        if (target && target.getAttribute("href")) {{
+                            let href = target.getAttribute("href");
+                            if (href.startsWith("?") || href.startsWith("/")) {{
+                                document.getElementById("loading-overlay").style.display = "flex";
+                            }}
+                        }}
+                    }});
+                </script>
             </body>
             </html>
             """
