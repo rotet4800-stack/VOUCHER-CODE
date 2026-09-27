@@ -48,14 +48,14 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Login - Network Dashboard</title>
                 <style>
-                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
-                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #0b5ed7; width: 90%; max-width: 380px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; }
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 0; left: 0; }
+                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #0b5ed7; width: 90%; max-width: 380px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; z-index: 999; }
                     .login-title { font-size: 20px; font-weight: 800; color: #0d6efd; margin-bottom: 24px; }
                     .input-group { margin-bottom: 16px; text-align: left; position: relative; }
                     .input-group label { display: block; font-weight: 700; margin-bottom: 6px; color: #212529; font-size: 14px; }
                     .input-container { position: relative; display: flex; align-items: center; }
                     .input-icon { position: absolute; left: 12px; font-size: 18px; color: #6c757d; }
-                    .input-group input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; }
+                    .input-group input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background: #fff; }
                     .input-group input:focus { border-color: #0d6efd; }
                     .toggle-eye { position: absolute; right: 12px; cursor: pointer; font-size: 18px; color: #6c757d; }
                     .login-btn { width: 100%; background: #0d6efd; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(13,110,253,0.3); margin-top: 10px; }
@@ -188,6 +188,7 @@ class handler(BaseHTTPRequestHandler):
                             <div class="nav-tabs">
                                 <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
                                 <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
+                                <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                 <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
@@ -275,6 +276,7 @@ class handler(BaseHTTPRequestHandler):
                             <div class="nav-tabs">
                                 <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
                                 <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
+                                <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                 <a href="?tab=groups&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
@@ -336,6 +338,7 @@ class handler(BaseHTTPRequestHandler):
                         <div class="nav-tabs">
                             <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
                             <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                            <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                         </div>
                         <div class="blue-box">Total Groups: {total_groups}</div>
                         <div class="footer-summary" style="margin-top: 8px;">
@@ -384,6 +387,7 @@ class handler(BaseHTTPRequestHandler):
                     <div class="nav-tabs">
                         <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
                         <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                        <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                     </div>
                     <div class="blue-box">Total Connected: {total_count} Devices</div>
                 </div>
