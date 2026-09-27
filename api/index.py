@@ -90,8 +90,8 @@ class handler(BaseHTTPRequestHandler):
                         status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                         
                         vouchers_html += f"""
-                        <div style="background: #ffffff; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 14px; font-weight: 700; color: #1f1f1f;">{v_idx}. Code: <b style="color: #198754; font-family: monospace; font-size: 15px;">{code_no}</b></span>
+                        <div style="background: #f8f9fa; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ced4da; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1f1f1f;">{v_idx}. Code: <b style="color: #0d6efd; font-family: monospace; font-size: 15px;">{code_no}</b></span>
                             <span style="background: {status_color}20; color: {status_color}; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{status_text}</span>
                         </div>
                         """
@@ -106,7 +106,7 @@ class handler(BaseHTTPRequestHandler):
                         <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
                     </div>
                     <div class="scrollable-list">
-                        {vouchers_html if vouchers_html else '<p style="text-align:center; color:#2e7d32; margin-top:20px;">No vouchers found in this group.</p>'}
+                        {vouchers_html if vouchers_html else '<p style="text-align:center; color:#495057; margin-top:20px;">No vouchers found in this group.</p>'}
                     </div>
                     """
                 else:
@@ -169,7 +169,7 @@ class handler(BaseHTTPRequestHandler):
                         </div>
                     </div>
                     <div class="scrollable-list">
-                        {items_html if items_html else '<p style="text-align:center; color:#084298;">No groups found.</p>'}
+                        {items_html if items_html else '<p style="text-align:center; color:#495057;">No groups found.</p>'}
                     </div>
                     """
             else:
@@ -187,14 +187,14 @@ class handler(BaseHTTPRequestHandler):
                     band = client.get("band") or "-"
                     
                     items_html += f"""
-                    <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #b6d4fe; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ced4da; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div>
                             <div style="font-size: 14px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #0d6efd; font-weight: 800;">{index}.</span> 
                                 <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
                             </div>
-                            <div style="font-size: 12px; color: #605e5c; margin-top: 2px; padding-left: 20px;">
-                                Model: <b style="color: #323130;">{model}</b>
+                            <div style="font-size: 12px; color: #6c757d; margin-top: 2px; padding-left: 20px;">
+                                Model: <b style="color: #343a40;">{model}</b>
                             </div>
                         </div>
                         <div style="background: #cfe2ff; color: #084298; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #b6d4fe;">
@@ -212,7 +212,7 @@ class handler(BaseHTTPRequestHandler):
                     <div class="blue-box">Total Connected: {total_count} Devices</div>
                 </div>
                 <div class="scrollable-list">
-                    {items_html if items_html else '<p style="text-align:center; color:#084298;">No connected devices found.</p>'}
+                    {items_html if items_html else '<p style="text-align:center; color:#495057;">No connected devices found.</p>'}
                 </div>
                 """
 
@@ -224,20 +224,20 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Network Management Dashboard</title>
                 <style>
-                    html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f0f4f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #323130; }}
-                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #cfe2ff; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #0d6efd; border-right: 2px solid #0d6efd; }}
-                    .sticky-header {{ flex-shrink: 0; background: #cfe2ff; padding-bottom: 6px; z-index: 10; }}
+                    html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }}
+                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }}
+                    .sticky-header {{ flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }}
                     .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #9ec5fe; color: #084298; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #86b7fe; }}
+                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #adb5bd; }}
                     .nav-tab.active {{ background: #0d6efd; color: #ffffff; box-shadow: 0 3px 6px rgba(13,110,253,0.3); border-color: #0b5ed7; }}
                     .blue-box {{ background: #0d6efd; color: #ffffff; padding: 16px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 700; box-shadow: 0 4px 10px rgba(13,110,253,0.3); margin-bottom: 8px; border: 2px solid #084298; }}
-                    .blue-card {{ background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #0d6efd; box-shadow: 0 2px 4px rgba(13,110,253,0.08); display: flex; align-items: center; gap: 12px; }}
+                    .blue-card {{ background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #ced4da; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px; }}
                     .footer-summary {{ display: flex; gap: 6px; }}
-                    .summary-card {{ flex: 1; background: #ffffff; border: 2px solid #0d6efd; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(13,110,253,0.05); }}
+                    .summary-card {{ flex: 1; background: #f8f9fa; border: 2px solid #ced4da; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #212529; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }}
                     .summary-card b {{ display: block; color: #0d6efd; font-size: 14px; margin-top: 2px; }}
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
-                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #9ec5fe; border-radius: 10px; }}
+                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #adb5bd; border-radius: 10px; }}
                 </style>
             </head>
             <body>
