@@ -28,7 +28,7 @@ class handler(BaseHTTPRequestHandler):
             token_data = token_res.json()
             
             if token_res.status_code != 200 or token_data.get("code") != 0:
-                self.wfile.write("<h3>Token ရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
+                self.wfile.write("<h3>ဒေတာရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
                 return
 
             access_token = token_data.get("accessToken")
@@ -39,7 +39,7 @@ class handler(BaseHTTPRequestHandler):
             client_data = client_res.json()
             
             if client_res.status_code != 200 or client_data.get("code") != 0:
-                self.wfile.write("<h3>ဖုန်းစာရင်း ရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
+                self.wfile.write("<h3>ချိတ်ဆက်မှုစာရင်း ရယူရန် မအောင်မြင်ပါ</h3>".encode('utf-8'))
                 return
 
             total_count = client_data.get("totalCount", 0)
@@ -52,16 +52,17 @@ class handler(BaseHTTPRequestHandler):
                 band = client.get("band") or "-"
                 
                 devices_html += f"""
-                <div style="background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e1dfdd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
                     <div>
-                        <div style="font-size: 16px; font-weight: bold; color: #202124;">
-                            {index}. Brand: <span style="color: #1a73e8;">{brand}</span>
+                        <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #0078d4; font-weight: 800;">{index}.</span> 
+                            <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
                         </div>
-                        <div style="font-size: 14px; color: #5f6368; margin-top: 4px;">
-                            Model: <b>{model}</b>
+                        <div style="font-size: 13px; color: #605e5c; margin-top: 4px; padding-left: 20px;">
+                            Model: <b style="color: #323130;">{model}</b>
                         </div>
                     </div>
-                    <div style="background: #e8f0fe; color: #1a73e8; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;">
+                    <div style="background: #eff6fc; color: #0078d4; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #c7e0f4;">
                         {band}
                     </div>
                 </div>
@@ -73,19 +74,19 @@ class handler(BaseHTTPRequestHandler):
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Ruijie Connected Devices</title>
+                <title>Connected Devices Overview</title>
                 <style>
-                    body {{ font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }}
-                    .container {{ max-width: 600px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
-                    h2 {{ color: #1a73e8; text-align: center; margin-bottom: 20px; }}
-                    .counter {{ background: #e8f0fe; color: #1a73e8; padding: 14px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 20px; }}
+                    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f3f2f1; margin: 0; padding: 16px; color: #323130; }}
+                    .container {{ max-width: 500px; margin: 20px auto; background: #faf9f8; padding: 24px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); border: 1px id #edebe9; }}
+                    h2 {{ color: #201f1e; text-align: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }}
+                    .counter {{ background: #0078d4; color: #ffffff; padding: 14px; border-radius: 10px; text-align: center; font-size: 16px; font-weight: 600; margin-bottom: 24px; box-shadow: 0 4px 8px rgba(0,120,212,0.2); }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h2>Ruijie Wi-Fi ချိတ်ဆက်ထားသော ဖုန်းများ</h2>
+                    <h2>ကြိုးမဲ့အင်တာနက် ချိတ်ဆက်ထားသော စက်များ</h2>
                     <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
-                    <div>{devices_html if devices_html else '<p style="text-align:center; color:#777;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}</div>
+                    <div>{devices_html if devices_html else '<p style="text-align:center; color:#605e5c;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}</div>
                 </div>
             </body>
             </html>
@@ -94,6 +95,6 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(html_content.encode('utf-8'))
             
         except Exception as e:
-            self.wfile.write(f"<h3>System Error: {str(e)}</h3>".encode('utf-8'))
+            self.wfile.write(f"<h3>စနစ် အမှားအယွင်းရှိပါသည်: {str(e)}</h3>".encode('utf-8'))
         
         return
