@@ -15,6 +15,7 @@ class handler(BaseHTTPRequestHandler):
         query_params = parse_qs(parsed_url.query)
         current_tab = query_params.get('tab', ['devices'])[0]
         selected_group_id = query_params.get('group_id', [None])[0]
+        selected_group_name = query_params.get('group_name', ['Group'])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -48,19 +49,23 @@ class handler(BaseHTTPRequestHandler):
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
-                # အကယ်၍ အုပ်စုတစ်ခုကို နှိပ်ထားပါက ထိုရွေးချယ်ထားသော group_id ဖြင့် တိုက်ရိုက်ဆွဲထုတ်မည်[span_2](start_span)[span_2](end_span)
                 if selected_group_id:
-                    vouchers_url = f"{BASE_URL}/service/api/open/auth/account/getList/{selected_group_id}?access_token={access_token}&start=0&pageSize=100"
+                    vouchers_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
                     v_res = requests.get(vouchers_url, headers=headers)
                     v_data = v_res.json()
                     
-                    v_list = v_data.get("list", []) if v_res.status_code == 200 and v_data.get("code") == 0 else []
+                    v_list = []
+                    if v_res.status_code == 200 and v_data.get("code") == 0:
+                        raw_v_list = v_data.get("list", [])
+                        for v in raw_v_list:
+                            if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
+                                v_list.append(v)
                     
+                    v_count = len(v_list)
                     vouchers_html = ""
                     for v_idx, v in enumerate(v_list, 1):
                         code_no = v.get("username") or v.get("codeNo") or v.get("account") or "N/A"
                         status = str(v.get("status", "1"))
-                        # Status 1: unused, 2: in-use, 3: expired[span_3](start_span)[span_3](end_span)
                         status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                         status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                         
@@ -77,7 +82,8 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=devices" class="nav-tab">Connected Devices</a>
                             <a href="?tab=groups" class="nav-tab active">User Groups</a>
                         </div>
-                        <a href="?tab=groups" style="display: block; text-align: center; background: #a5d6a7; color: #1b5e20; padding: 8px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px; margin-bottom: 6px;">← Back to Groups</a>
+                        <a href="?tab=groups" style="display: block; text-align: center; background: #a5d6a7; color: #1b5e20; padding: 8px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px; margin-bottom: 6px;">Back to Groups</a>
+                        <div class="counter">{selected_group_name} - Total Cards: {v_count}</div>
                     </div>
                     <div class="scrollable-list">
                         {vouchers_html if vouchers_html else '<p style="text-align:center; color:#2e7d32; margin-top:20px;">No vouchers found in this group.</p>'}
@@ -102,7 +108,7 @@ class handler(BaseHTTPRequestHandler):
                         g_id = g.get("id")
                         
                         items_html += f"""
-                        <a href="?tab=groups&group_id={g_id}" style="text-decoration: none; display: block;">
+                        <a href="?tab=groups&group_id={g_id}&group_name={name}" style="text-decoration: none; display: block;">
                             <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
                                 <span style="color: #198754; font-weight: 800; font-size: 15px;">{index}.</span> 
                                 <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
