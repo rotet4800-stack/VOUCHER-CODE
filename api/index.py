@@ -27,7 +27,6 @@ class handler(BaseHTTPRequestHandler):
         }
         
         try:
-            # ၁။ Access Token တောင်းယူခြင်း[span_2](start_span)[span_2](end_span)
             token_url = f"{BASE_URL}/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
             token_payload = json.dumps({"appid": APP_ID, "secret": SECRET})
             token_res = requests.post(token_url, headers=headers, data=token_payload)
@@ -49,29 +48,19 @@ class handler(BaseHTTPRequestHandler):
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
-                # Account Status Summary အချက်အလက်များ ရယူခြင်း (API 2.4.6)[span_3](start_span)[span_3](end_span)
-                summary_url = f"{BASE_URL}/service/api/open/auth/account/getStatusSummary/{GROUP_ID}?access_token={access_token}&groupId={GROUP_ID}"
-                summary_res = requests.get(summary_url, headers=headers)
-                summary_data = summary_res.json()
-                
-                total_vouchers = summary_data.get("total", 0)
-                used_vouchers = summary_data.get("used", 0)
-                expired_vouchers = summary_data.get("expired", 0)
-                
-                # အကယ်၍ အုပ်စုတစ်ခုကို နှိပ်ထားပါက ယင်းအုပ်စု၏ ဘောက်ချာစာရင်းကို ရယူရန် (API 2.3.3)[span_4](start_span)[span_4](end_span)
+                # အကယ်၍ အုပ်စုတစ်ခုကို နှိပ်ထားပါက ထိုရွေးချယ်ထားသော group_id ဖြင့် တိုက်ရိုက်ဆွဲထုတ်မည်[span_2](start_span)[span_2](end_span)
                 if selected_group_id:
-                    vouchers_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=100"
+                    vouchers_url = f"{BASE_URL}/service/api/open/auth/account/getList/{selected_group_id}?access_token={access_token}&start=0&pageSize=100"
                     v_res = requests.get(vouchers_url, headers=headers)
                     v_data = v_res.json()
                     
-                    v_root = v_data.get("voucherData", {})
-                    v_list = v_root.get("list", []) if v_res.status_code == 200 and v_root.get("code") == 0 else []
+                    v_list = v_data.get("list", []) if v_res.status_code == 200 and v_data.get("code") == 0 else []
                     
                     vouchers_html = ""
                     for v_idx, v in enumerate(v_list, 1):
-                        code_no = v.get("codeNo") or v.get("voucherCode") or "N/A"
+                        code_no = v.get("username") or v.get("codeNo") or v.get("account") or "N/A"
                         status = str(v.get("status", "1"))
-                        # Status 1: unused, 2: in-use, 3: expired[span_5](start_span)[span_5](end_span)
+                        # Status 1: unused, 2: in-use, 3: expired[span_3](start_span)[span_3](end_span)
                         status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                         status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                         
@@ -91,10 +80,22 @@ class handler(BaseHTTPRequestHandler):
                         <a href="?tab=groups" style="display: block; text-align: center; background: #a5d6a7; color: #1b5e20; padding: 8px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px; margin-bottom: 6px;">← Back to Groups</a>
                     </div>
                     <div class="scrollable-list">
-                        {vouchers_html if vouchers_html else '<p style="text-align:center; color:#2e7d32; margin-top:20px;">No vouchers found.</p>'}
+                        {vouchers_html if vouchers_html else '<p style="text-align:center; color:#2e7d32; margin-top:20px;">No vouchers found in this group.</p>'}
                     </div>
                     """
                 else:
+                    total_vouchers = 0
+                    used_vouchers = 0
+                    expired_vouchers = 0
+                    
+                    summary_url = f"{BASE_URL}/service/api/open/auth/account/getStatusSummary/{GROUP_ID}?access_token={access_token}&groupId={GROUP_ID}"
+                    summary_res = requests.get(summary_url, headers=headers)
+                    summary_data = summary_res.json()
+                    if summary_res.status_code == 200 and summary_data.get("code") == 0:
+                        total_vouchers = summary_data.get("total", 0)
+                        used_vouchers = summary_data.get("used", 0)
+                        expired_vouchers = summary_data.get("expired", 0)
+
                     items_html = ""
                     for index, g in enumerate(group_list, 1):
                         name = g.get("userGroupName") or g.get("name") or "Unknown Group"
