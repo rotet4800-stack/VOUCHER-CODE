@@ -225,7 +225,7 @@ class handler(BaseHTTPRequestHandler):
                 <title>Network Management Dashboard</title>
                 <style>
                     html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }}
-                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }}
+                    .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }}
                     .sticky-header {{ flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }}
                     .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
                     .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #adb5bd; }}
