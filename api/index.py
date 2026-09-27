@@ -48,7 +48,7 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Login - Network Dashboard</title>
                 <style>
-                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 0; left: 0; }
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; width: 100%; position: absolute; top: 0; left: 0; }
                     .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #0b5ed7; width: 90%; max-width: 380px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; z-index: 999; }
                     .login-title { font-size: 20px; font-weight: 800; color: #0d6efd; margin-bottom: 24px; }
                     .input-group { margin-bottom: 16px; text-align: left; position: relative; }
