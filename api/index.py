@@ -102,7 +102,7 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=devices" class="nav-tab">Connected Devices</a>
                             <a href="?tab=groups" class="nav-tab active">User Groups</a>
                         </div>
-                        <a href="?tab=groups" style="display: block; text-align: center; background: #cfe2ff; color: #084298; padding: 10px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; margin-bottom: 8px; border: 1px solid #b6d4fe;">Back to Groups</a>
+                        <a href="?tab=groups" style="display: block; text-align: center; background: #cfe2ff; color: #084298; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; margin-bottom: 8px; border: 1px solid #b6d4fe;">Back to Groups</a>
                         <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
                     </div>
                     <div class="scrollable-list">
@@ -227,9 +227,9 @@ class handler(BaseHTTPRequestHandler):
                     html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }}
                     .container {{ max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }}
                     .sticky-header {{ flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }}
-                    .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-                    .nav-tab {{ flex: 1; text-align: center; padding: 10px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; border: 1px solid #adb5bd; }}
-                    .nav-tab.active {{ background: #0d6efd; color: #ffffff; box-shadow: 0 3px 6px rgba(13,110,253,0.3); border-color: #0b5ed7; }}
+                    .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 10px; }}
+                    .nav-tab {{ flex: 1; text-align: center; padding: 14px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 1px solid #adb5bd; }}
+                    .nav-tab.active {{ background: #0d6efd; color: #ffffff; box-shadow: 0 4px 8px rgba(13,110,253,0.3); border-color: #0b5ed7; }}
                     .blue-box {{ background: #0d6efd; color: #ffffff; padding: 16px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 700; box-shadow: 0 4px 10px rgba(13,110,253,0.3); margin-bottom: 8px; border: 2px solid #084298; }}
                     .blue-card {{ background: #f8f9fa; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #ced4da; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px; }}
                     .footer-summary {{ display: flex; gap: 6px; }}
