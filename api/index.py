@@ -48,7 +48,7 @@ class handler(BaseHTTPRequestHandler):
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
-                # အကယ်၍ အုပ်စုတစ်ခုခုကို နှိပ်ထားပါက ယင်းအုပ်စု၏ ဘောက်ချာစာရင်းကို ဆွဲထုတ်မည်
+                # အကယ်၍ အုပ်စုတစ်ခုကို နှိပ်ထားပါက ထိုအုပ်စု၏ ဘောက်ချာစာရင်းကို ဆွဲထုတ်မည်
                 if selected_group_id:
                     vouchers_url = f"{BASE_URL}/service/api/open/auth/account/getList/{selected_group_id}?access_token={access_token}&start=0&pageSize=100"
                     v_res = requests.get(vouchers_url, headers=headers)
@@ -83,6 +83,23 @@ class handler(BaseHTTPRequestHandler):
                     </div>
                     """
                 else:
+                    # Summary counts
+                    total_vouchers = 0
+                    used_vouchers = 0
+                    expired_vouchers = 0
+                    
+                    acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                    acc_res = requests.get(acc_url, headers=headers)
+                    acc_data = acc_res.json()
+                    if acc_res.status_code == 200 and acc_data.get("code") == 0:
+                        total_vouchers = acc_data.get("count", 0)
+                        for acc in acc_data.get("list", []):
+                            status = str(acc.get("status", "1"))
+                            if status == "2":
+                                used_vouchers += 1
+                            elif status == "3":
+                                expired_vouchers += 1
+
                     items_html = ""
                     for index, g in enumerate(group_list, 1):
                         name = g.get("userGroupName") or g.get("name") or "Unknown Group"
@@ -90,12 +107,9 @@ class handler(BaseHTTPRequestHandler):
                         
                         items_html += f"""
                         <a href="?tab=groups&group_id={g_id}" style="text-decoration: none; display: block;">
-                            <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span style="color: #198754; font-weight: 800; font-size: 15px;">{index}.</span> 
-                                    <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
-                                </div>
-                                <span style="color: #198754; font-weight: bold; font-size: 13px;">View →</span>
+                            <div style="background: #ffffff; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #198754; font-weight: 800; font-size: 15px;">{index}.</span> 
+                                <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
                             </div>
                         </a>
                         """
@@ -107,6 +121,11 @@ class handler(BaseHTTPRequestHandler):
                             <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                         </div>
                         <div class="counter">Total Groups: {total_groups}</div>
+                        <div class="footer-summary" style="margin-top: 6px;">
+                            <div class="summary-card">Total: <b>{total_vouchers}</b></div>
+                            <div class="summary-card">In-Use: <b>{used_vouchers}</b></div>
+                            <div class="summary-card">Expired: <b>{expired_vouchers}</b></div>
+                        </div>
                     </div>
                     <div class="scrollable-list">
                         {items_html if items_html else '<p style="text-align:center; color:#2e7d32;">No groups found.</p>'}
@@ -170,7 +189,10 @@ class handler(BaseHTTPRequestHandler):
                     .nav-tabs {{ display: flex; gap: 8px; margin-bottom: 8px; }}
                     .nav-tab {{ flex: 1; text-align: center; padding: 8px; background: #a5d6a7; color: #1b5e20; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px; transition: all 0.2s; }}
                     .nav-tab.active {{ background: #198754; color: #ffffff; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
-                    .counter {{ background: #198754; color: #ffffff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(25,135,84,0.3); }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(25,135,84,0.3); margin-bottom: 6px; }}
+                    .footer-summary {{ display: flex; gap: 6px; }}
+                    .summary-card {{ flex: 1; background: #ffffff; border: 1px solid #d1e7dd; padding: 8px 4px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600; color: #1f1f1f; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }}
+                    .summary-card b {{ display: block; color: #198754; font-size: 13px; margin-top: 2px; }}
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
