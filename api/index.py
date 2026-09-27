@@ -49,16 +49,16 @@ class handler(BaseHTTPRequestHandler):
                 <title>Login - Network Dashboard</title>
                 <style>
                     html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; width: 100%; position: absolute; top: 0; left: 0; }
-                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #0b5ed7; width: 90%; max-width: 380px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; z-index: 999; }
-                    .login-title { font-size: 20px; font-weight: 800; color: #0d6efd; margin-bottom: 24px; }
+                    .login-card { background: transparent; padding: 20px; width: 90%; max-width: 380px; box-sizing: border-box; text-align: center; z-index: 999; }
+                    .login-title { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
                     .input-group { margin-bottom: 16px; text-align: left; position: relative; }
-                    .input-group label { display: block; font-weight: 700; margin-bottom: 6px; color: #212529; font-size: 14px; }
+                    .input-group label { display: block; font-weight: 700; margin-bottom: 6px; color: #ffffff; font-size: 14px; }
                     .input-container { position: relative; display: flex; align-items: center; }
                     .input-icon { position: absolute; left: 12px; font-size: 18px; color: #6c757d; }
-                    .input-group input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background: #fff; }
-                    .input-group input:focus { border-color: #0d6efd; }
+                    .input-group input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background: #ffffff; color: #212529; }
+                    .input-group input:focus { border-color: #ffffff; }
                     .toggle-eye { position: absolute; right: 12px; cursor: pointer; font-size: 18px; color: #6c757d; }
-                    .login-btn { width: 100%; background: #0d6efd; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(13,110,253,0.3); margin-top: 10px; }
+                    .login-btn { width: 100%; background: #ffffff; color: #0d6efd; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.15); margin-top: 10px; }
                 </style>
             </head>
             <body>
@@ -279,7 +279,7 @@ class handler(BaseHTTPRequestHandler):
                                 <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
+                                <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
                                 <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}&login=true" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="width: 45px; background: #0dcaf0; color: #ffffff; border: none; padding: 10px; border-radius: 12px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 8px rgba(13,202,240,0.3);" title="Print">🖨️</button>
                             </div>
@@ -502,7 +502,7 @@ class handler(BaseHTTPRequestHandler):
             
             self.wfile.write(html_content.encode('utf-8'))
             
-        except Exception as e:
+        exceptException as e:
             self.send_response(200)
             self.send_header('Content-type', 'text/html; charset=utf-8')
             self.end_headers()
