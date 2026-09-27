@@ -5,7 +5,6 @@ import traceback
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # အဖြေကို 200 OK အနေဖြင့် အမြဲပေးမည် (Error ဖမ်းရလွယ်အောင်)
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -16,7 +15,7 @@ class handler(BaseHTTPRequestHandler):
             'Accept': 'application/json'
         }
         
-        # အဆင့် (၁) - Token တောင်းယူခြင်း
+        # ၁။ Access Token တောင်းယူခြင်း[span_5](start_span)[span_5](end_span)
         token_url = "https://cloud-as.ruijienetworks.com/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
         token_payload = json.dumps({
             "appid": "openc3be644fb5dc",
@@ -25,58 +24,52 @@ class handler(BaseHTTPRequestHandler):
         
         try:
             token_res = requests.post(token_url, headers=headers, data=token_payload)
-            
-            # Token အဖြေကို JSON ဖတ်ကြည့်မည်
-            try:
-                token_data = token_res.json()
-            except Exception:
-                # Token လင့်ခ်က JSON ပြန်မပေးပါက
-                self.wfile.write(json.dumps({
-                    "error_at": "Step 1 (Token Request)",
-                    "status_code": token_res.status_code,
-                    "ruijie_response": token_res.text
-                }).encode('utf-8'))
-                return
-            
+            token_data = token_res.json()
             access_token = token_data.get("accessToken")
+            
             if not access_token:
-                self.wfile.write(json.dumps({
-                    "error_at": "Step 1 (Parsing Token)",
-                    "message": "Token မပါလာပါ။",
-                    "ruijie_response": token_data
-                }).encode('utf-8'))
+                self.wfile.write(json.dumps({"error": "Token မရရှိပါ။", "details": token_data}).encode('utf-8'))
                 return
 
-            # အဆင့် (၂) - Voucher ထုတ်ခြင်း
-            # မှတ်ချက် - ဤ URL ကို လက်စွဲစာအုပ်ထဲမှ အမှန်ဖြင့် အစားထိုးရန် လိုအပ်နိုင်ပါသည်။
-            voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/v1/voucher/create?token={access_token}"
+            # ၂။ Group ID ရယူရန် Network Group List လှမ်းခေါ်ခြင်း[span_6](start_span)[span_6](end_span)
+            group_url = f"https://cloud-as.ruijienetworks.com/service/api/group/single/tree?depth=BUILDING&access_token={access_token}"
+            group_res = requests.get(group_url, headers=headers)
+            group_data = group_res.json()
+            
+            # Group ID ကို ရှာဖွေခြင်း (ပထမဆုံးတွေ့သည့် Group ID ကို ယူမည်)
+            group_id = None
+            try:
+                # Documentation ဖွဲ့စည်းပုံအရ groups အောက်မှ groupId ကို ယူမည်[span_7](start_span)[span_7](end_span)
+                groups_info = group_data.get("groups", {})
+                if "subGroups" in groups_info and len(groups_info["subGroups"]) > 0:
+                    group_id = groups_info["subGroups"][0]["groupId"]
+                else:
+                    group_id = groups_info.get("groupId", 0)
+            except Exception:
+                group_id = 0
+
+            if not group_id:
+                group_id = 0  # ရှာမတွေ့ပါက Default 0 ဖြင့် သုံးမည်
+
+            # ၃။ Voucher ထုတ်လုပ်ခြင်း (Generate Voucher API)[span_8](start_span)[span_8](end_span)
+            voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/create/{group_id}?access_token={access_token}"
+            
+            # Documentation တွင် ဖော်ပြထားသော လိုအပ်သော Parameter များ[span_9](start_span)[span_9](end_span)
             voucher_payload = json.dumps({
-                "packageId": "123456", # မိမိ၏ Package ID အမှန်
-                "quantity": 1
+                "quantity": 1,
+                "profile": "30113648274480073538014045592098", # သင့်အကောင့်ထဲရှိ Profile UUID ဖြင့် လဲရန်
+                "userGroupId": 18067                       # သင့်အကောင့်ထဲရှိ User Group ID ဖြင့် လဲရန်
             })
 
             voucher_res = requests.post(voucher_url, headers=headers, data=voucher_payload)
+            voucher_data = voucher_res.json()
             
-            # Voucher အဖြေကို JSON ဖတ်ကြည့်မည်
-            try:
-                voucher_data = voucher_res.json()
-            except Exception:
-                # Voucher လင့်ခ်က JSON ပြန်မပေးပါက ဤနေရာတွင် အတိအကျ ပြမည်
-                self.wfile.write(json.dumps({
-                    "error_at": "Step 2 (Voucher Request)",
-                    "status_code": voucher_res.status_code,
-                    "ruijie_response": voucher_res.text,
-                    "used_url": voucher_url
-                }).encode('utf-8'))
-                return
-            
-            # အားလုံးအောင်မြင်ပါက Voucher Data ကို ပြမည်
+            # ရလဒ်ကို ပြသခြင်း[span_10](start_span)[span_10](end_span)
             self.wfile.write(json.dumps(voucher_data).encode('utf-8'))
             
         except Exception as e:
-            # Code အတွင်း အခြား Error ရှိပါက
             self.wfile.write(json.dumps({
-                "error_at": "System Code",
+                "error": "System Error",
                 "message": str(e),
                 "traceback": traceback.format_exc()
             }).encode('utf-8'))
