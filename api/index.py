@@ -41,17 +41,32 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # အကယ်၍ + ခလုတ်နှိပ်ပြီး ဘောက်ချာအသစ်ထုတ်ရန် တောင်းဆိုလာပါက (API 2.3.1)[span_2](start_span)[span_2](end_span)
-            if action == 'create_voucher' and selected_group_id:
+            # အကယ်၍ ဘောက်ချာအသစ်ထုတ်ရန် Form တင်သွင်းလာပါက (API 2.3.1)[span_1](start_span)[span_1](end_span)
+            if action == 'generate_now' and selected_group_id:
+                quantity = int(query_params.get('quantity', [1])[0])
+                
+                # အရင်ဆုံး profile နှင့် userGroupId ကို User Group List မှ ရယူမည် (API 2.7.1)[span_2](start_span)[span_2](end_span)
+                ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+                ug_res = requests.get(ug_url, headers=headers, timeout=5)
+                profile_id = "30113648274480073538014045592098"
+                user_group_id = int(selected_group_id)
+                
+                if ug_res.status_code == 200:
+                    for g in ug_res.json().get("data", []):
+                        if str(g.get("id")) == str(selected_group_id):
+                            profile_id = g.get("authProfileId", profile_id)
+                            user_group_id = g.get("id", user_group_id)
+                            break
+
                 create_url = f"{BASE_URL}/service/api/open/auth/voucher/create/{GROUP_ID}?access_token={access_token}"
                 create_payload = json.dumps({
-                    "quantity": 1,
-                    "profile": "30113648274480073538014045592098",
-                    "userGroupId": int(selected_group_id)
+                    "quantity": quantity,
+                    "profile": str(profile_id),
+                    "userGroupId": int(user_group_id),
+                    "comment": f"Generated for {selected_group_name}"
                 })
                 requests.post(create_url, headers=headers, data=create_payload, timeout=5)
                 
-                # ထုတ်ပြီးပါက သက်ဆိုင်ရာအုပ်စုစာမျက်နှာသို့ ပြန်လည်ညွှန်းမည်
                 self.send_response(302)
                 self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
                 self.end_headers()
@@ -60,86 +75,124 @@ class handler(BaseHTTPRequestHandler):
             content_html = ""
             
             if current_tab == 'groups':
-                def fetch_groups():
-                    url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
-                    return requests.get(url, headers=headers, timeout=5).json()
-
-                def fetch_accounts():
-                    url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                    return requests.get(url, headers=headers, timeout=5).json()
-
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    future_ug = executor.submit(fetch_groups)
-                    future_acc = executor.submit(fetch_accounts)
-                    
-                    ug_data = future_ug.result()
-                    acc_res_json = future_acc.result()
-
+                ug_url = f"{BASE_URL}/service/api/intl/usergroup/list/{GROUP_ID}?pageIndex=0&pageSize=50&access_token={access_token}"
+                ug_res = requests.get(ug_url, headers=headers)
+                ug_data = ug_res.json()
+                
                 total_groups = ug_data.get("count", 0)
                 group_list = ug_data.get("data", [])
                 
                 if selected_group_id:
-                    v_list = []
-                    if acc_res_json.get("code") == 0:
-                        for acc in acc_res_json.get("list", []):
-                            if str(acc.get("userGroupId")) == str(selected_group_id) or str(acc.get("groupId")) == str(selected_group_id):
+                    if action == 'generate_form':
+                        content_html = f"""
+                        <div class="sticky-header">
+                            <div class="nav-tabs">
+                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
+                            </div>
+                            <div class="blue-box" style="font-size: 15px; margin-bottom: 4px;">{selected_group_name}</div>
+                            <div style="text-align: center; color: #084298; font-weight: 700; font-size: 16px; margin-bottom: 12px;">Generate Voucher Code</div>
+                        </div>
+                        <div style="background: #ffffff; padding: 20px; border-radius: 14px; border: 2px solid #ced4da; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-top: 10px;">
+                            <form action="" method="GET">
+                                <input type="hidden" name="tab" value="groups">
+                                <input type="hidden" name="group_id" value="{selected_group_id}">
+                                <input type="hidden" name="group_name" value="{selected_group_name}">
+                                <input type="hidden" name="action" value="generate_now">
+                                
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-weight: 700; margin-bottom: 6px; color: #212529;">အရေအတွက် (Quantity)</label>
+                                    <input type="number" name="quantity" value="1" min="1" max="500" style="width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box;">
+                                </div>
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-weight: 700; margin-bottom: 6px; color: #212529;">Type</label>
+                                    <select style="width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; background: #fff; box-sizing: border-box;">
+                                        <option>a-z 0-9</option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-weight: 700; margin-bottom: 6px; color: #212529;">Voucher Length</label>
+                                    <select style="width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; background: #fff; box-sizing: border-box;">
+                                        <option>6</option>
+                                    </select>
+                                </div>
+                                <button type="submit" style="width: 100%; background: #0d6efd; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(13,110,253,0.3);">Generate</button>
+                            </form>
+                        </div>
+                        """
+                    else:
+                        v_list = []
+                        acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                        acc_res = requests.get(acc_url, headers=headers)
+                        if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
+                            for acc in acc_res.json().get("list", []):
+                                if str(acc.get("userGroupId")) == str(selected_group_id) or str(acc.get("groupId")) == str(selected_group_id):
+                                    v_list.append({
+                                        "codeNo": acc.get("username") or acc.get("account"),
+                                        "status": acc.get("status", "1")
+                                    })
+                        
+                        if not v_list:
+                            v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                            v_res = requests.get(v_url, headers=headers, timeout=5)
+                            if v_res.status_code == 200:
+                                v_root = v_res.json().get("voucherData", {})
+                                if v_root.get("code") == 0:
+                                    for v in v_root.get("list", []):
+                                        if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
+                                            v_list.append({
+                                                "codeNo": v.get("codeNo") or v.get("voucherCode"),
+                                                "status": v.get("status", "1")
+                                            })
+
+                        if not v_list and acc_res.status_code == 200:
+                            raw_acc = acc_res.json().get("list", [])
+                            for acc in raw_acc:
                                 v_list.append({
                                     "codeNo": acc.get("username") or acc.get("account"),
                                     "status": acc.get("status", "1")
                                 })
-                    
-                    if not v_list:
-                        v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                        v_res = requests.get(v_url, headers=headers, timeout=5)
-                        if v_res.status_code == 200:
-                            v_root = v_res.json().get("voucherData", {})
-                            if v_root.get("code") == 0:
-                                for v in v_root.get("list", []):
-                                    if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
-                                        v_list.append({
-                                            "codeNo": v.get("codeNo") or v.get("voucherCode"),
-                                            "status": v.get("status", "1")
-                                        })
-
-                    if not v_list and acc_res_json.get("code") == 0:
-                        for acc in acc_res_json.get("list", []):
-                            v_list.append({
-                                "codeNo": acc.get("username") or acc.get("account"),
-                                "status": acc.get("status", "1")
-                            })
-                    
-                    v_count = len(v_list)
-                    vouchers_html = ""
-                    for v_idx, v in enumerate(v_list, 1):
-                        code_no = v.get("codeNo") or "N/A"
-                        status = str(v.get("status", "1"))
-                        status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
-                        status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                         
-                        vouchers_html += f"""
-                        <div style="background: #f8f9fa; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ced4da; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 14px; font-weight: 700; color: #1f1f1f;">{v_idx}. Code: <b style="color: #0d6efd; font-family: monospace; font-size: 15px;">{code_no}</b></span>
-                            <span style="background: {status_color}20; color: {status_color}; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{status_text}</span>
+                        v_count = len(v_list)
+                        vouchers_html = ""
+                        for v_idx, v in enumerate(v_list, 1):
+                            code_no = v.get("codeNo") or "N/A"
+                            status = str(v.get("status", "1"))
+                            status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
+                            status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
+                            
+                            vouchers_html += f"""
+                            <div style="background: #f8f9fa; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ced4da; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; font-weight: 700; color: #1f1f1f;">{v_idx}. Code: <b style="color: #0d6efd; font-family: monospace; font-size: 15px;">{code_no}</b></span>
+                                <span style="background: {status_color}20; color: {status_color}; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{status_text}</span>
+                            </div>
+                            """
+                        
+                        content_html = f"""
+                        <div class="sticky-header">
+                            <div class="nav-tabs">
+                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 50px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                            </div>
+                            <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
+                        </div>
+                        <div class="scrollable-list">
+                            {vouchers_html if vouchers_html else '<p style="text-align:center; color:#495057; margin-top:20px;">No vouchers found in this group.</p>'}
                         </div>
                         """
-                    
-                    content_html = f"""
-                    <div class="sticky-header">
-                        <div class="nav-tabs">
-                            <a href="?tab=devices" class="nav-tab">Connected Devices</a>
-                            <a href="?tab=groups" class="nav-tab active">User Groups</a>
-                        </div>
-                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                            <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
-                            <a href="?tab=groups&action=create_voucher&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 50px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
-                        </div>
-                        <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
-                    </div>
-                    <div class="scrollable-list">
-                        {vouchers_html if vouchers_html else '<p style="text-align:center; color:#495057; margin-top:20px;">No vouchers found in this group.</p>'}
-                    </div>
-                    """
                 else:
+                    def fetch_accounts():
+                        url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                        return requests.get(url, headers=headers, timeout=5).json()
+
+                    acc_res_json = fetch_accounts()
                     total_vouchers = 0
                     used_vouchers = 0
                     expired_vouchers = 0
