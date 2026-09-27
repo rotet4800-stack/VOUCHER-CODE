@@ -15,7 +15,6 @@ class handler(BaseHTTPRequestHandler):
         action = query_params.get('action', [None])[0]
         logged_in = query_params.get('login', [None])[0]
 
-        # Login စစ်ဆေးရန် (Username: admin, Password: 1234)
         if action == 'do_login':
             u = query_params.get('username', [''])[0]
             p = query_params.get('password', [''])[0]
@@ -49,12 +48,16 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Login - Network Dashboard</title>
                 <style>
-                    html, body { height: 100%; margin: 0; padding: 0; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
-                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #ced4da; width: 100%; max-width: 380px; box-sizing: border-box; box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-align: center; }
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
+                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #0b5ed7; width: 90%; max-width: 380px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; }
                     .login-title { font-size: 20px; font-weight: 800; color: #0d6efd; margin-bottom: 24px; }
-                    .input-group { margin-bottom: 16px; text-align: left; }
+                    .input-group { margin-bottom: 16px; text-align: left; position: relative; }
                     .input-group label { display: block; font-weight: 700; margin-bottom: 6px; color: #212529; font-size: 14px; }
-                    .input-group input { width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+                    .input-container { position: relative; display: flex; align-items: center; }
+                    .input-icon { position: absolute; left: 12px; font-size: 18px; color: #6c757d; }
+                    .input-group input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; }
+                    .input-group input:focus { border-color: #0d6efd; }
+                    .toggle-eye { position: absolute; right: 12px; cursor: pointer; font-size: 18px; color: #6c757d; }
                     .login-btn { width: 100%; background: #0d6efd; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(13,110,253,0.3); margin-top: 10px; }
                 </style>
             </head>
@@ -65,15 +68,32 @@ class handler(BaseHTTPRequestHandler):
                         <input type="hidden" name="action" value="do_login">
                         <div class="input-group">
                             <label>Username</label>
-                            <input type="text" name="username" required autocomplete="off">
+                            <div class="input-container">
+                                <span class="input-icon">👤</span>
+                                <input type="text" name="username" required autocomplete="off">
+                            </div>
                         </div>
                         <div class="input-group">
                             <label>Password</label>
-                            <input type="password" name="password" required>
+                            <div class="input-container">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" name="password" id="password-field" required>
+                                <span class="toggle-eye" onclick="togglePassword()">👁️</span>
+                            </div>
                         </div>
                         <button type="submit" class="login-btn">Login</button>
                     </form>
                 </div>
+                <script>
+                    function togglePassword() {
+                        let pwd = document.getElementById("password-field");
+                        if (pwd.type === "password") {
+                            pwd.type = "text";
+                        } else {
+                            pwd.type = "password";
+                        }
+                    }
+                </script>
             </body>
             </html>
             """
