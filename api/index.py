@@ -13,6 +13,72 @@ class handler(BaseHTTPRequestHandler):
         selected_group_id = query_params.get('group_id', [None])[0]
         selected_group_name = query_params.get('group_name', ['Group'])[0]
         action = query_params.get('action', [None])[0]
+        logged_in = query_params.get('login', [None])[0]
+
+        # Login စစ်ဆေးရန် (Username: admin, Password: 1234)
+        if action == 'do_login':
+            u = query_params.get('username', [''])[0]
+            p = query_params.get('password', [''])[0]
+            if u == 'admin' and p == '1234':
+                self.send_response(303)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.send_header('Location', '/?tab=devices&login=true')
+                self.end_headers()
+                return
+            else:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write("""
+                <script>
+                    alert('Username သို့မဟုတ် Password မှားယွင်းနေပါသည်။');
+                    window.location.href = '/';
+                </script>
+                """.encode('utf-8'))
+                return
+
+        if logged_in != 'true' and action != 'do_login':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html; charset=utf-8')
+            self.end_headers()
+            login_html = """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                <title>Login - Network Dashboard</title>
+                <style>
+                    html, body { height: 100%; margin: 0; padding: 0; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; }
+                    .login-card { background: #ffffff; padding: 30px 24px; border-radius: 16px; border: 2px solid #ced4da; width: 100%; max-width: 380px; box-sizing: border-box; box-shadow: 0 6px 15px rgba(0,0,0,0.08); text-align: center; }
+                    .login-title { font-size: 20px; font-weight: 800; color: #0d6efd; margin-bottom: 24px; }
+                    .input-group { margin-bottom: 16px; text-align: left; }
+                    .input-group label { display: block; font-weight: 700; margin-bottom: 6px; color: #212529; font-size: 14px; }
+                    .input-group input { width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+                    .login-btn { width: 100%; background: #0d6efd; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(13,110,253,0.3); margin-top: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="login-card">
+                    <div class="login-title">Network Management Login</div>
+                    <form action="" method="GET">
+                        <input type="hidden" name="action" value="do_login">
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" name="username" required autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" name="password" required>
+                        </div>
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+                </div>
+            </body>
+            </html>
+            """
+            self.wfile.write(login_html.encode('utf-8'))
+            return
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -65,7 +131,7 @@ class handler(BaseHTTPRequestHandler):
                 
                 self.send_response(303)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
+                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&login=true')
                 self.end_headers()
                 return
 
@@ -100,11 +166,11 @@ class handler(BaseHTTPRequestHandler):
                         content_html = """
                         <div class="sticky-header">
                             <div class="nav-tabs">
-                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
-                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                                <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
+                                <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
                             </div>
                             <div class="blue-box" style="font-size: 15px; margin-bottom: 4px;">""" + str(selected_group_name) + """</div>
                             <div style="text-align: center; color: #084298; font-weight: 700; font-size: 16px; margin-bottom: 12px;">Generate Voucher Code</div>
@@ -115,6 +181,7 @@ class handler(BaseHTTPRequestHandler):
                                 <input type="hidden" name="group_id" value="""" + str(selected_group_id) + """"">
                                 <input type="hidden" name="group_name" value="""" + str(selected_group_name) + """"">
                                 <input type="hidden" name="action" value="generate_now">
+                                <input type="hidden" name="login" value="true">
                                 
                                 <div style="margin-bottom: 16px;">
                                     <label style="display: block; font-weight: 700; margin-bottom: 6px; color: #212529;">အရေအတွက် (Quantity)</label>
@@ -186,12 +253,12 @@ class handler(BaseHTTPRequestHandler):
                         content_html = f"""
                         <div class="sticky-header">
                             <div class="nav-tabs">
-                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
-                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                                <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                                <a href="?tab=groups&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}&login=true" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="width: 45px; background: #0dcaf0; color: #ffffff; border: none; padding: 10px; border-radius: 12px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 8px rgba(13,202,240,0.3);" title="Print">🖨️</button>
                             </div>
                             <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
@@ -236,7 +303,7 @@ class handler(BaseHTTPRequestHandler):
                         g_id = g.get("id")
                         
                         items_html += f"""
-                        <a href="?tab=groups&group_id={g_id}&group_name={name}" style="text-decoration: none; display: block;">
+                        <a href="?tab=groups&group_id={g_id}&group_name={name}&login=true" style="text-decoration: none; display: block;">
                             <div class="blue-card">
                                 <span style="color: #0d6efd; font-weight: 800; font-size: 15px;">{index}.</span> 
                                 <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
@@ -247,8 +314,8 @@ class handler(BaseHTTPRequestHandler):
                     content_html = f"""
                     <div class="sticky-header">
                         <div class="nav-tabs">
-                            <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
-                            <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                            <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                            <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                         </div>
                         <div class="blue-box">Total Groups: {total_groups}</div>
                         <div class="footer-summary" style="margin-top: 8px;">
@@ -295,8 +362,8 @@ class handler(BaseHTTPRequestHandler):
                 content_html = f"""
                 <div class="sticky-header">
                     <div class="nav-tabs">
-                        <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
-                        <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                        <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                        <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
                     </div>
                     <div class="blue-box">Total Connected: {total_count} Devices</div>
                 </div>
