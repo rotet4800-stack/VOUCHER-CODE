@@ -13,7 +13,10 @@ class handler(BaseHTTPRequestHandler):
         selected_group_id = query_params.get('group_id', [None])[0]
         selected_group_name = query_params.get('group_name', ['Group'])[0]
         action = query_params.get('action', [None])[0]
-        logged_in = query_params.get('login', [None])[0]
+
+        # Cookie စစ်ဆေးခြင်း (တစ်ခါဝင်ထားရင် နောက်တစ်ခါ ထပ်မလိုတော့ရန်)
+        cookie_header = self.headers.get('Cookie', '')
+        is_logged_in = 'auth_session=true' in cookie_header
 
         if action == 'do_login':
             u = query_params.get('username', [''])[0]
@@ -21,7 +24,8 @@ class handler(BaseHTTPRequestHandler):
             if u == 'admin' and p == '1234':
                 self.send_response(303)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.send_header('Location', '/?tab=devices&login=true')
+                self.send_header('Set-Cookie', 'auth_session=true; Path=/; Max-Age=2592000; HttpOnly')
+                self.send_header('Location', '/?tab=devices')
                 self.end_headers()
                 return
             else:
@@ -36,7 +40,15 @@ class handler(BaseHTTPRequestHandler):
                 """.encode('utf-8'))
                 return
 
-        if logged_in != 'true' and action != 'do_login':
+        if action == 'logout':
+            self.send_response(303)
+            self.send_header('Content-type', 'text/html; charset=utf-8')
+            self.send_header('Set-Cookie', 'auth_session=false; Path=/; Max-Age=0; HttpOnly')
+            self.send_header('Location', '/')
+            self.end_headers()
+            return
+
+        if not is_logged_in:
             self.send_response(200)
             self.send_header('Content-type', 'text/html; charset=utf-8')
             self.end_headers()
@@ -48,7 +60,7 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Login - Network Dashboard</title>
                 <style>
-                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; width: 100%; position: absolute; top: 0; left: 0; }
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0d6efd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; width: 100%; position: fixed; top: 0; left: 0; touch-action: none; }
                     .login-card { background: transparent; padding: 20px; width: 90%; max-width: 380px; box-sizing: border-box; text-align: center; z-index: 999; }
                     .login-title { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
                     .input-group { margin-bottom: 16px; text-align: left; position: relative; }
@@ -151,7 +163,7 @@ class handler(BaseHTTPRequestHandler):
                 
                 self.send_response(303)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&login=true')
+                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
                 self.end_headers()
                 return
 
@@ -186,12 +198,12 @@ class handler(BaseHTTPRequestHandler):
                         content_html = """
                         <div class="sticky-header">
                             <div class="nav-tabs">
-                                <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
-                                <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
-                                <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
+                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                                <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """&login=true" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
+                                <a href="?tab=groups&group_id=""" + str(selected_group_id) + """&group_name=""" + str(selected_group_name) + """" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Back</a>
                             </div>
                             <div class="blue-box" style="font-size: 15px; margin-bottom: 4px;">""" + str(selected_group_name) + """</div>
                             <div style="text-align: center; color: #084298; font-weight: 700; font-size: 16px; margin-bottom: 12px;">Generate Voucher Code</div>
@@ -202,7 +214,6 @@ class handler(BaseHTTPRequestHandler):
                                 <input type="hidden" name="group_id" value="""" + str(selected_group_id) + """"">
                                 <input type="hidden" name="group_name" value="""" + str(selected_group_name) + """"">
                                 <input type="hidden" name="action" value="generate_now">
-                                <input type="hidden" name="login" value="true">
                                 
                                 <div style="margin-bottom: 16px;">
                                     <label style="display: block; font-weight: 700; margin-bottom: 6px; color: #212529;">အရေအတွက် (Quantity)</label>
@@ -274,13 +285,13 @@ class handler(BaseHTTPRequestHandler):
                         content_html = f"""
                         <div class="sticky-header">
                             <div class="nav-tabs">
-                                <a href="?tab=devices&login=true" class="nav-tab">Connected Devices</a>
-                                <a href="?tab=groups&login=true" class="nav-tab active">User Groups</a>
-                                <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
+                                <a href="?tab=devices" class="nav-tab">Connected Devices</a>
+                                <a href="?tab=groups" class="nav-tab active">User Groups</a>
+                                <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                 <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}&login=true" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="width: 45px; background: #0dcaf0; color: #ffffff; border: none; padding: 10px; border-radius: 12px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 8px rgba(13,202,240,0.3);" title="Print">🖨️</button>
                             </div>
                             <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
@@ -325,7 +336,7 @@ class handler(BaseHTTPRequestHandler):
                         g_id = g.get("id")
                         
                         items_html += f"""
-                        <a href="?tab=groups&group_id={g_id}&group_name={name}&login=true" style="text-decoration: none; display: block;">
+                        <a href="?tab=groups&group_id={g_id}&group_name={name}" style="text-decoration: none; display: block;">
                             <div class="blue-card">
                                 <span style="color: #0d6efd; font-weight: 800; font-size: 15px;">{index}.</span> 
                                 <span style="font-size: 15px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
@@ -336,9 +347,9 @@ class handler(BaseHTTPRequestHandler):
                     content_html = f"""
                     <div class="sticky-header">
                         <div class="nav-tabs">
-                            <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
-                            <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
-                            <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
+                            <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                            <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                            <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                         </div>
                         <div class="blue-box">Total Groups: {total_groups}</div>
                         <div class="footer-summary" style="margin-top: 8px;">
@@ -385,9 +396,9 @@ class handler(BaseHTTPRequestHandler):
                 content_html = f"""
                 <div class="sticky-header">
                     <div class="nav-tabs">
-                        <a href="?tab=devices&login=true" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
-                        <a href="?tab=groups&login=true" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
-                        <a href="/" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
+                        <a href="?tab=devices" class="nav-tab {'active' if current_tab == 'devices' else ''}">Connected Devices</a>
+                        <a href="?tab=groups" class="nav-tab {'active' if current_tab == 'groups' else ''}">User Groups</a>
+                        <a href="?action=logout" class="nav-tab" style="background: #dc3545; color: #fff; max-width: 60px;" title="Logout">🚪</a>
                     </div>
                     <div class="blue-box">Total Connected: {total_count} Devices</div>
                 </div>
@@ -404,8 +415,8 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                 <title>Network Management Dashboard</title>
                 <style>
-                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; }
-                    .container { max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; }
+                    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #212529; position: fixed; width: 100%; top: 0; left: 0; touch-action: none; }
+                    .container { max-width: 500px; height: 100%; margin: 0 auto; background: #e9ecef; padding: 24px 14px 14px 14px; box-sizing: border-box; display: flex; flex-direction: column; border-left: 2px solid #dee2e6; border-right: 2px solid #dee2e6; touch-action: pan-y; }
                     .sticky-header { flex-shrink: 0; background: #e9ecef; padding-bottom: 6px; z-index: 10; }
                     .nav-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
                     .nav-tab { flex: 1; text-align: center; padding: 14px; background: #ced4da; color: #495057; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 1px solid #adb5bd; }
@@ -415,7 +426,7 @@ class handler(BaseHTTPRequestHandler):
                     .footer-summary { display: flex; gap: 6px; }
                     .summary-card { flex: 1; background: #f8f9fa; border: 2px solid #ced4da; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #212529; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
                     .summary-card b { display: block; color: #0d6efd; font-size: 14px; margin-top: 2px; }
-                    .scrollable-list { flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; }
+                    .scrollable-list { flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; touch-action: pan-y; }
                     .scrollable-list::-webkit-scrollbar { width: 5px; }
                     .scrollable-list::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
                     
