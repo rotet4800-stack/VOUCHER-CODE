@@ -50,21 +50,12 @@ class handler(BaseHTTPRequestHandler):
                 items_html = ""
                 for index, g in enumerate(group_list, 1):
                     name = g.get("userGroupName") or g.get("name") or "Unknown Group"
-                    ug_id = g.get("id")
-                    profile_id = g.get("authProfileId")
-                    quota = g.get("quota", 0)
                     
+                    # နာမည်များကိုသာ သပ်သပ်ရပ်ရပ် ဖော်ပြမည် (အခြားအချက်အလက်များ ဖျောက်ထားသည်)
                     items_html += f"""
-                    <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="color: #198754; font-weight: 800;">{index}.</span> 
-                            <span style="letter-spacing: 0.5px;">{name}</span>
-                        </div>
-                        <div style="font-size: 13px; color: #605e5c; display: flex; flex-direction: column; gap: 4px; padding-left: 20px;">
-                            <div>Group ID: <b style="color: #323130;">{ug_id}</b></div>
-                            <div>Profile ID: <b style="color: #323130; word-break: break-all;">{profile_id}</b></div>
-                            <div>Traffic Quota: <b style="color: #198754;">{quota} MB</b></div>
-                        </div>
+                    <div style="background: #ffffff; padding: 18px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 12px;">
+                        <span style="color: #198754; font-weight: 800; font-size: 16px;">{index}.</span> 
+                        <span style="font-size: 16px; font-weight: 700; color: #1f1f1f; letter-spacing: 0.5px;">{name}</span>
                     </div>
                     """
                 
