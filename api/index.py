@@ -52,17 +52,17 @@ class handler(BaseHTTPRequestHandler):
                 band = client.get("band") or "-"
                 
                 devices_html += f"""
-                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e1dfdd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <div style="background: #ffffff; padding: 16px 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1e7dd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div>
                         <div style="font-size: 15px; font-weight: 700; color: #1f1f1f; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #0078d4; font-weight: 800;">{index}.</span> 
+                            <span style="color: #198754; font-weight: 800;">{index}.</span> 
                             <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
                         </div>
                         <div style="font-size: 13px; color: #605e5c; margin-top: 4px; padding-left: 20px;">
                             Model: <b style="color: #323130;">{model}</b>
                         </div>
                     </div>
-                    <div style="background: #eff6fc; color: #0078d4; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #c7e0f4;">
+                    <div style="background: #d1e7dd; color: #0f5132; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #badbcc;">
                         {band}
                     </div>
                 </div>
@@ -76,17 +76,25 @@ class handler(BaseHTTPRequestHandler):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Connected Devices Overview</title>
                 <style>
-                    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f3f2f1; margin: 0; padding: 16px; color: #323130; }}
-                    .container {{ max-width: 500px; margin: 20px auto; background: #faf9f8; padding: 24px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); border: 1px id #edebe9; }}
-                    h2 {{ color: #201f1e; text-align: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }}
-                    .counter {{ background: #0078d4; color: #ffffff; padding: 14px; border-radius: 10px; text-align: center; font-size: 16px; font-weight: 600; margin-bottom: 24px; box-shadow: 0 4px 8px rgba(0,120,212,0.2); }}
+                    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #e8f5e9; margin: 0; padding: 16px; color: #323130; }}
+                    .container {{ max-width: 500px; margin: 10px auto; background: #c8e6c9; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); border: 1px solid #a5d6a7; display: flex; flex-direction: column; height: 85vh; box-sizing: border-box; }}
+                    h2 {{ color: #1b5e20; text-align: center; margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; }}
+                    .sticky-header {{ position: sticky; top: 0; background: #c8e6c9; z-index: 10; padding-bottom: 10px; }}
+                    .counter {{ background: #198754; color: #ffffff; padding: 14px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(25,135,84,0.3); }}
+                    .scrollable-list {{ overflow-y: auto; flex-grow: 1; padding-right: 4px; margin-top: 5px; }}
+                    .scrollable-list::-webkit-scrollbar {{ width: 6px; }}
+                    .scrollable-list::-webkit-scrollbar-thumb {{ background: #a5d6a7; border-radius: 10px; }}
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h2>ကြိုးမဲ့အင်တာနက် ချိတ်ဆက်ထားသော စက်များ</h2>
-                    <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
-                    <div>{devices_html if devices_html else '<p style="text-align:center; color:#605e5c;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}</div>
+                    <div class="sticky-header">
+                        <h2>ကြိုးမဲ့အင်တာနက် ချိတ်ဆက်ထားသော စက်များ</h2>
+                        <div class="counter">စုစုပေါင်း ချိတ်ဆက်ထားသူ: {total_count} လုံး</div>
+                    </div>
+                    <div class="scrollable-list">
+                        {devices_html if devices_html else '<p style="text-align:center; color:#2e7d32;">ချိတ်ဆက်ထားသော စက်ပစ္စည်း မရှိသေးပါ။</p>'}
+                    </div>
                 </div>
             </body>
             </html>
