@@ -190,7 +190,8 @@ class handler(BaseHTTPRequestHandler):
                             </div>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                 <a href="?tab=groups" style="flex: 1; text-align: center; background: #ced4da; color: #495057; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; border: 1px solid #adb5bd;">Groups</a>
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 50px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="width: 45px; text-align: center; background: #198754; color: #ffffff; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 4px 8px rgba(25,135,84,0.3);">+</a>
+                                <button onclick="connectAndPrint('{selected_group_name}')" style="width: 45px; background: #0dcaf0; color: #ffffff; border: none; padding: 10px; border-radius: 12px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 8px rgba(13,202,240,0.3);" title="Print to Bluetooth Printer">🖨️</button>
                             </div>
                             <div class="blue-box">{selected_group_name} - Total Cards: {v_count}</div>
                         </div>
@@ -356,6 +357,35 @@ class handler(BaseHTTPRequestHandler):
                             }}
                         }}
                     }});
+
+                    async function connectAndPrint(groupName) {{
+                        let countStr = prompt("ဘောက်ချာ ဘယ်နှစ်စောင် ထုတ်မလဲ?", "1");
+                        if (!countStr) return;
+                        let count = parseInt(countStr);
+                        if (isNaN(count) || count <= 0) return;
+
+                        try {{
+                            const device = await navigator.bluetooth.requestDevice({
+                                acceptAllDevices: true,
+                                optionalServices: [ '000018f0-0000-1000-8000-00805f9b34fb' ]
+                            });
+                            const server = await device.gatt.connect();
+                            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                            const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+                            let encoder = new TextEncoder();
+                            let printData = "\\x1B\\x40\\x1B\\x61\\x01\\n";
+                            printData += "=== " + groupName + " ===\\n";
+                            printData += "Voucher Cards (" + count + " pcs)\\n";
+                            printData += "--------------------------------\\n";
+                            printData += "Printed successfully via BLE\\n\\n\\n";
+
+                            await characteristic.writeValue(encoder.encode(printData));
+                            alert("ပရင်တာသို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ!");
+                        } catch (error) {{
+                            alert("Printer Error: " + error);
+                        }}
+                    }}
                 </script>
             </body>
             </html>
