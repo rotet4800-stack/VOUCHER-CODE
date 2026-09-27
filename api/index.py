@@ -50,21 +50,44 @@ class handler(BaseHTTPRequestHandler):
                 group_list = ug_data.get("data", [])
                 
                 if selected_group_id:
-                    vouchers_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
-                    v_res = requests.get(vouchers_url, headers=headers)
-                    v_data = v_res.json()
-                    
                     v_list = []
-                    if v_res.status_code == 200 and v_data.get("code") == 0:
-                        raw_v_list = v_data.get("list", [])
-                        for v in raw_v_list:
-                            if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
-                                v_list.append(v)
+                    
+                    # 1. account/getList ကို စစ်ဆေးခြင်း[span_2](start_span)[span_2](end_span)
+                    acc_url = f"{BASE_URL}/service/api/open/auth/account/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                    acc_res = requests.get(acc_url, headers=headers)
+                    if acc_res.status_code == 200 and acc_res.json().get("code") == 0:
+                        for acc in acc_res.json().get("list", []):
+                            if str(acc.get("userGroupId")) == str(selected_group_id) or str(acc.get("groupId")) == str(selected_group_id):
+                                v_list.append({
+                                    "codeNo": acc.get("username") or acc.get("account"),
+                                    "status": acc.get("status", "1")
+                                })
+                    
+                    # 2. အကယ်၍ မတွေ့သေးပါက voucher/getList ကို ထပ်မံစစ်ဆေးခြင်း[span_3](start_span)[span_3](end_span)
+                    if not v_list:
+                        v_url = f"{BASE_URL}/service/api/open/auth/voucher/getList/{GROUP_ID}?access_token={access_token}&start=0&pageSize=200"
+                        v_res = requests.get(v_url, headers=headers)
+                        if v_res.status_code == 200 and v_res.json().get("voucherData", {}).get("code") == 0:
+                            for v in v_res.json().get("voucherData", {}).get("list", []):
+                                if str(v.get("userGroupId")) == str(selected_group_id) or str(v.get("groupId")) == str(selected_group_id):
+                                    v_list.append({
+                                        "codeNo": v.get("codeNo") or v.get("voucherCode"),
+                                        "status": v.get("status", "1")
+                                    })
+
+                    # 3. အကယ်၍ အုပ်စု ID ဖြင့် တိုက်ရိုက်မတွေ့ပါက ထိုအုပ်စု၏ အကောင့်အားလုံးကို ဖော်ပြပေးရန် Fallback
+                    if not v_list and acc_res.status_code == 200:
+                        raw_acc = acc_res.json().get("list", [])
+                        for acc in raw_acc:
+                            v_list.append({
+                                "codeNo": acc.get("username") or acc.get("account"),
+                                "status": acc.get("status", "1")
+                            })
                     
                     v_count = len(v_list)
                     vouchers_html = ""
                     for v_idx, v in enumerate(v_list, 1):
-                        code_no = v.get("username") or v.get("codeNo") or v.get("account") or "N/A"
+                        code_no = v.get("codeNo") or "N/A"
                         status = str(v.get("status", "1"))
                         status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                         status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
