@@ -15,7 +15,7 @@ class handler(BaseHTTPRequestHandler):
             'Accept': 'application/json'
         }
         
-        # ၁။ Access Token တောင်းယူခြင်း
+        # ၁။ Access Token တောင်းယူခြင်း[span_1](start_span)[span_1](end_span)
         token_url = "https://cloud-as.ruijienetworks.com/service/api/oauth20/client/access_token?token=d63dss0a81e4415a889ac5b78fsc904a"
         token_payload = json.dumps({
             "appid": "openc3be644fb5dc",
@@ -31,30 +31,14 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Token မရရှိပါ။", "details": token_data}).encode('utf-8'))
                 return
 
-            # ၂။ Group ID ရယူရန် Network Group List လှမ်းခေါ်ခြင်း
-            group_tree_url = f"https://cloud-as.ruijienetworks.com/service/api/group/single/tree?depth=BUILDING&access_token={access_token}"
-            group_tree_res = requests.get(group_tree_url, headers=headers)
-            group_tree_data = group_tree_res.json()
+            # --- ဤနေရာတွင် သင့် Ruijie Cloud ထဲမှ မှန်ကန်သော Group ID (Project ID) ကို တိုက်ရိုက်ထည့်ပါ ---
+            group_id = 12482  # <-- သင့်အကောင့်ထဲရှိ Group ID အမှန်ဖြင့် လဲပါ
             
-            group_id = None
-            try:
-                groups_info = group_tree_data.get("groups", {})
-                if "subGroups" in groups_info and len(groups_info["subGroups"]) > 0:
-                    group_id = groups_info["subGroups"][0]["groupId"]
-                else:
-                    group_id = groups_info.get("groupId", 0)
-            except Exception:
-                group_id = 0
-
-            if not group_id:
-                group_id = 0
-
-            # ၃။ User Group List (Profile UUID နှင့် User Group ID) ကို ဆွဲထုတ်ခြင်း
+            # ၂။ User Group List ကို တိုက်ရိုက်လှမ်းခေါ်ခြင်း[span_2](start_span)[span_2](end_span)
             user_group_url = f"https://cloud-as.ruijienetworks.com/service/api/intl/usergroup/list/{group_id}?pageIndex=0&pageSize=10&access_token={access_token}"
             ug_res = requests.get(user_group_url, headers=headers)
             ug_data = ug_res.json()
             
-            # အကောင့်ထဲတွင် ရှိပြီးသား ပထမဆုံး User Group နှင့် Profile ID ကို ယူမည်
             profile_uuid = None
             user_group_id = None
             
@@ -67,14 +51,13 @@ class handler(BaseHTTPRequestHandler):
                 pass
 
             if not profile_uuid or not user_group_id:
-                # အကယ်၍ မတွေ့ပါက Error ထုတ်ပြမည်
                 self.wfile.write(json.dumps({
-                    "error": "User Group or Profile not found",
-                    "debug_usergroup_response": ug_data
+                    "error": "Profile or User Group ID not found in this Group",
+                    "debug_response": ug_data
                 }).encode('utf-8'))
                 return
 
-            # ၄။ Voucher ထုတ်လုပ်ခြင်း (Generate Voucher API)
+            # ၃။ Voucher ထုတ်လုပ်ခြင်း (Generate Voucher API)[span_3](start_span)[span_3](end_span)
             voucher_url = f"https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/create/{group_id}?access_token={access_token}"
             
             voucher_payload = json.dumps({
@@ -87,7 +70,7 @@ class handler(BaseHTTPRequestHandler):
             voucher_res = requests.post(voucher_url, headers=headers, data=voucher_payload)
             voucher_data = voucher_res.json()
             
-            # အောင်မြင်သော Voucher ရလဒ်ကို ပြသခြင်း
+            # အောင်မြင်သော Voucher ရလဒ်ကို ပြသခြင်း[span_4](start_span)[span_4](end_span)
             self.wfile.write(json.dumps(voucher_data).encode('utf-8'))
             
         except Exception as e:
