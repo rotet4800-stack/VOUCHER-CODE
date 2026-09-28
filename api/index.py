@@ -301,7 +301,6 @@ class handler(BaseHTTPRequestHandler):
                                     "status": acc.get("status", "1")
                                 })
                         
-                        # Filter based on dropdown selection
                         filtered_v_list = []
                         if filter_status == 'unused':
                             filtered_v_list = [v for v in v_list if str(v.get("status", "1")) == "1"]
@@ -315,7 +314,6 @@ class handler(BaseHTTPRequestHandler):
                         vouchers_html = ""
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
-                            status = str(v.get("status", "1"))
                             
                             vouchers_html += f"""
                             <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; flex-direction: column; gap: 4px;">
@@ -350,10 +348,10 @@ class handler(BaseHTTPRequestHandler):
                                 let drop = document.getElementById('filterDropdown');
                                 drop.style.display = drop.style.display === 'block' ? 'none' : 'block';
                             }}
-                            window.addEventListener('click', () => {
+                            window.addEventListener('click', () => {{
                                 let drop = document.getElementById('filterDropdown');
                                 if (drop) drop.style.display = 'none';
-                            });
+                            }});
                         </script>
                         """
                 else:
