@@ -52,10 +52,10 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # Ruijie ဆာဗာမှ ကဒ်ကို အမှန်တကယ် ဖျက်ပစ်သည့် API လုပ်ဆောင်ချက်
+            # Ruijie ဆာဗာမှ ကဒ်ကို အမှန်တကယ် ဖျက်ပစ်သည့် တရားဝင် API ပုံစံ
             if action == 'delete_voucher' and delete_code and selected_group_id:
-                del_url = f"{BASE_URL}/service/api/open/auth/account/delete/{GROUP_ID}?access_token={access_token}"
-                del_payload = json.dumps({"account": delete_code})
+                del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{GROUP_ID}?access_token={access_token}"
+                del_payload = json.dumps({"voucherCode": delete_code})
                 safe_request('post', del_url, headers=headers, data=del_payload)
                 
                 self.send_response(303)
@@ -313,7 +313,6 @@ class handler(BaseHTTPRequestHandler):
                                     "status": acc.get("status", "1")
                                 })
                         
-                        # အုပ်စုတစ်ခုချင်းစီအလိုက် သက်တန်းအခြေအနေ (Available, In-Use, Expired) စာရင်းများကို သီးသန့်ခွဲထုတ်ခြင်း
                         available_vouchers = [v for v in v_list if str(v.get("status", "1")) == "1"]
                         inuse_vouchers = [v for v in v_list if str(v.get("status", "1")) == "2"]
                         expired_vouchers = [v for v in v_list if str(v.get("status", "1")) == "3"]
@@ -326,7 +325,6 @@ class handler(BaseHTTPRequestHandler):
                                 status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                                 status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                                 
-                                # Expired ဖြစ်နေသော ကဒ်များအတွက်သာ အမှန်တကယ် ဖျက်ရန် ခလုတ်ပြသမည်
                                 delete_btn = ""
                                 if status == "3":
                                     delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}" onclick="return confirm('ဒီကုဒ် {code_no} ကို Ruijie ဆာဗာမှ အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
