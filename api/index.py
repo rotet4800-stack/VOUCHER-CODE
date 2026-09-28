@@ -3,9 +3,9 @@ import json
 import requests
 from flask import Flask, request, render_template_string
 
-# Vercel မှ အသိအမှတ်ပြုမည့် top-level app variable
 app = Flask(__name__)
 
+# တိုက်ရိုက်အသုံးပြုမည့် Credentials များ
 APP_ID = "openc3be644fb5dc"
 APP_SECRET = "0dea886911864f359497a65f94164518"
 BASE_URL = "https://cloud-as.ruijienetworks.com"
@@ -18,23 +18,21 @@ def safe_json(res):
         return {}
 
 def ruijie_login(account, password):
-    current_app_id = os.environ.get("RUIJIE_APP_ID", APP_ID)
-    current_secret = os.environ.get("RUIJIE_APP_SECRET", APP_SECRET)
-
-    if not current_app_id or not current_secret:
-        return None, "Server မှာ Ruijie APP_ID / APP_SECRET မထည့်ရသေးပါ။"
+    if not account or not password:
+        return None, "ကျေးဇူးပြု၍ အကောင့်နှင့် စကားဝှက်ကို ထည့်ပါ။"
 
     url = f"{BASE_URL}/service/api/login"
     
-    payload = json.dumps({
-        "appid": current_app_id,
-        "secret": current_secret,
+    # Ruijie API သို့ တိုက်ရိုက် JSON ပုံစံဖြင့် ပို့ခြင်း
+    payload = {
+        "appid": APP_ID,
+        "secret": APP_SECRET,
         "account": account,
-        "password": password,
-    })
+        "password": password
+    }
 
     try:
-        res = requests.post(url, headers=HEADERS, data=payload)
+        res = requests.post(url, headers=HEADERS, json=payload)
         data = safe_json(res)
 
         if res.status_code != 200 or data.get("code") != 0:
@@ -46,9 +44,6 @@ def ruijie_login(account, password):
 
         if not access_token:
             return None, "Ruijie က access_token မပြန်ပေးပါ။"
-
-        if not root_group_id:
-            return None, "Ruijie က groupId မပြန်ပေးပါ။"
 
         return {
             "access_token": access_token,
