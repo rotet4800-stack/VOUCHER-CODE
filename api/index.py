@@ -20,7 +20,7 @@ def ruijie_login(account, password):
     if not account or not password:
         return None, "ကျေးဇူးပြု၍ အကောင့်နှင့် စကားဝှက်ကို ထည့်ပါ။"
 
-    # အဆင့် ၁ - App ID နှင့် Secret သုံးပြီး Access Token အရင်တောင်းခံခြင်း
+    # အဆင့် ၁ - OAuth Token အရင်တောင်းခံခြင်း
     token_url = f"{BASE_URL}/service/api/oauth2/client/access_token"
     token_payload = {
         "appid": APP_ID,
@@ -31,11 +31,12 @@ def ruijie_login(account, password):
         token_res = requests.post(token_url, headers=HEADERS, json=token_payload)
         token_data = safe_json(token_res)
         
+        # Access token ရယူခြင်း
         client_token = token_data.get("access_token") or token_data.get("accessToken")
         if not client_token and isinstance(token_data.get("result"), dict):
             client_token = token_data.get("result", {}).get("access_token")
 
-        # အဆင့် ၂ - ရလာတဲ့ Token နှင့် အသုံးပြုသူအချက်အလက်ဖြင့် Login ဝင်ခြင်း
+        # အဆင့် ၂ - Login API သို့ တောင်းဆိုခြင်း (Parameter အပြည့်အစုံထည့်ရန်)
         login_url = f"{BASE_URL}/service/api/login"
         login_payload = {
             "appid": APP_ID,
@@ -43,6 +44,7 @@ def ruijie_login(account, password):
             "account": account,
             "password": password
         }
+        
         if client_token:
             login_payload["access_token"] = client_token
 
@@ -80,7 +82,7 @@ def index():
         if err:
             error = err
         else:
-            return "Login Successful! အောင်မြင်ပါသည်။"
+            return f"Login Successful! Token: {user_data.get('access_token')}"
 
     html_template = """
     <!DOCTYPE html>
