@@ -5,7 +5,6 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# တိုက်ရိုက်အသုံးပြုမည့် Credentials များ
 APP_ID = "openc3be644fb5dc"
 APP_SECRET = "0dea886911864f359497a65f94164518"
 BASE_URL = "https://cloud-as.ruijienetworks.com"
@@ -21,18 +20,33 @@ def ruijie_login(account, password):
     if not account or not password:
         return None, "ကျေးဇူးပြု၍ အကောင့်နှင့် စကားဝှက်ကို ထည့်ပါ။"
 
-    url = f"{BASE_URL}/service/api/login"
-    
-    # Ruijie API သို့ တိုက်ရိုက် JSON ပုံစံဖြင့် ပို့ခြင်း
-    payload = {
+    # အဆင့် ၁ - App ID နှင့် Secret သုံးပြီး Access Token အရင်တောင်းခံခြင်း
+    token_url = f"{BASE_URL}/service/api/oauth2/client/access_token"
+    token_payload = {
         "appid": APP_ID,
-        "secret": APP_SECRET,
-        "account": account,
-        "password": password
+        "secret": APP_SECRET
     }
 
     try:
-        res = requests.post(url, headers=HEADERS, json=payload)
+        token_res = requests.post(token_url, headers=HEADERS, json=token_payload)
+        token_data = safe_json(token_res)
+        
+        client_token = token_data.get("access_token") or token_data.get("accessToken")
+        if not client_token and isinstance(token_data.get("result"), dict):
+            client_token = token_data.get("result", {}).get("access_token")
+
+        # အဆင့် ၂ - ရလာတဲ့ Token နှင့် အသုံးပြုသူအချက်အလက်ဖြင့် Login ဝင်ခြင်း
+        login_url = f"{BASE_URL}/service/api/login"
+        login_payload = {
+            "appid": APP_ID,
+            "secret": APP_SECRET,
+            "account": account,
+            "password": password
+        }
+        if client_token:
+            login_payload["access_token"] = client_token
+
+        res = requests.post(login_url, headers=HEADERS, json=login_payload)
         data = safe_json(res)
 
         if res.status_code != 200 or data.get("code") != 0:
