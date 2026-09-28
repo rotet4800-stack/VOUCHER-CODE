@@ -31,8 +31,6 @@ class handler(BaseHTTPRequestHandler):
                 try:
                     if method == 'post':
                         return requests.post(url, **kwargs)
-                    elif method == 'delete':
-                        return requests.delete(url, **kwargs)
                     else:
                         return requests.get(url, **kwargs)
                 except requests.exceptions.RequestException:
@@ -54,7 +52,7 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # ကဒ် သို့မဟုတ် အကောင့် အမှန်တကယ် ဖျက်သည့် လုပ်ဆောင်ချက်
+            # Ruijie ဆာဗာမှ ကဒ်ကို အမှန်တကယ် ဖျက်ပစ်သည့် API လုပ်ဆောင်ချက်
             if action == 'delete_voucher' and delete_code and selected_group_id:
                 del_url = f"{BASE_URL}/service/api/open/auth/account/delete/{GROUP_ID}?access_token={access_token}"
                 del_payload = json.dumps({"account": delete_code})
@@ -315,40 +313,55 @@ class handler(BaseHTTPRequestHandler):
                                     "status": acc.get("status", "1")
                                 })
                         
-                        v_count = len(v_list)
-                        vouchers_html = ""
-                        for v_idx, v in enumerate(v_list, 1):
-                            code_no = v.get("codeNo") or "N/A"
-                            status = str(v.get("status", "1"))
-                            status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
-                            status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
-                            
-                            # သက်တန်းကုန် သို့မဟုတ် အသုံးပြုပြီးသားကဒ်များကို ဖျက်ရန် ခလုတ် (Delete Button) ထည့်သွင်းပေးထားခြင်း
-                            delete_btn = ""
-                            if status == "3":  # Expired ဖြစ်နေလျှင် ဖျက်ရန်ခလုတ်ပြမည်
-                                delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}" onclick="return confirm('ဒီကုဒ် {code_no} ကို အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
+                        # အုပ်စုတစ်ခုချင်းစီအလိုက် သက်တန်းအခြေအနေ (Available, In-Use, Expired) စာရင်းများကို သီးသန့်ခွဲထုတ်ခြင်း
+                        available_vouchers = [v for v in v_list if str(v.get("status", "1")) == "1"]
+                        inuse_vouchers = [v for v in v_list if str(v.get("status", "1")) == "2"]
+                        expired_vouchers = [v for v in v_list if str(v.get("status", "1")) == "3"]
 
-                            vouchers_html += f"""
-                            <div style="background: #1f1f1f; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <span style="font-size: 14px; font-weight: 700; color: #ffffff;">{v_idx}. Code: <b style="color: #38bdf8; font-family: monospace; font-size: 15px;">{code_no}</b></span>
-                                    <div style="margin-top: 4px;"><span style="background: {status_color}30; color: {status_color}; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;">{status_text}</span></div>
+                        def render_voucher_items(items, default_status="1"):
+                            html_out = ""
+                            for v_idx, v in enumerate(items, 1):
+                                code_no = v.get("codeNo") or "N/A"
+                                status = str(v.get("status", default_status))
+                                status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
+                                status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
+                                
+                                # Expired ဖြစ်နေသော ကဒ်များအတွက်သာ အမှန်တကယ် ဖျက်ရန် ခလုတ်ပြသမည်
+                                delete_btn = ""
+                                if status == "3":
+                                    delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}" onclick="return confirm('ဒီကုဒ် {code_no} ကို Ruijie ဆာဗာမှ အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
+
+                                html_out += f"""
+                                <div style="background: #1f1f1f; padding: 12px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <span style="font-size: 14px; font-weight: 700; color: #ffffff;">{v_idx}. Code: <b style="color: #38bdf8; font-family: monospace; font-size: 15px;">{code_no}</b></span>
+                                        <div style="margin-top: 4px;"><span style="background: {status_color}30; color: {status_color}; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;">{status_text}</span></div>
+                                    </div>
+                                    <div>{delete_btn}</div>
                                 </div>
-                                <div>{delete_btn}</div>
-                            </div>
-                            """
-                        
+                                """
+                            return html_out
+
+                        v_count = len(v_list)
                         codes_json = json.dumps([v.get('codeNo') for v in v_list])
+                        
                         content_html = f"""
                         <div class="sticky-header">
                             <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754;">
                                 <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
-                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total Cards: {v_count}</span>
+                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total: {v_count}</span>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
                             </div>
                         </div>
                         <div class="scrollable-list">
-                            {vouchers_html if vouchers_html else '<p style="text-align:center; color:#adb5bd; margin-top:20px;">No vouchers found in this group.</p>'}
+                            <div style="margin-bottom: 10px; font-weight: bold; color: #38bdf8; font-size: 14px;">🟢 Available Vouchers ({len(available_vouchers)})</div>
+                            {render_voucher_items(available_vouchers, "1") if available_vouchers else '<p style="color:#adb5bd; font-size:12px; margin-bottom:10px;">No available vouchers.</p>'}
+
+                            <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold; color: #198754; font-size: 14px;">🔵 In-Use Vouchers ({len(inuse_vouchers)})</div>
+                            {render_voucher_items(inuse_vouchers, "2") if inuse_vouchers else '<p style="color:#adb5bd; font-size:12px; margin-bottom:10px;">No in-use vouchers.</p>'}
+
+                            <div style="margin-top: 15px; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 14px;">🔴 Expired Vouchers ({len(expired_vouchers)})</div>
+                            {render_voucher_items(expired_vouchers, "3") if expired_vouchers else '<p style="color:#adb5bd; font-size:12px; margin-bottom:10px;">No expired vouchers.</p>'}
                         </div>
                         """
                 else:
