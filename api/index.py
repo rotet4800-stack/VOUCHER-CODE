@@ -354,11 +354,9 @@ class handler(BaseHTTPRequestHandler):
                         
                         content_html = f"""
                         <div class="sticky-header">
-                            <div style="margin-bottom: 8px; position: relative;">
-                                <div onclick="toggleDropdown(event)" style="background: #1f1f1f; color: #ffffff; border: 1px solid #198754; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-                                    <span>{current_filter_label}</span>
-                                    <span style="font-size: 12px; color: #38bdf8;">▼</span>
-                                </div>
+                            <div style="background: #ffffff; color: #000000; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); margin-bottom: 8px; position: relative;" onclick="toggleDropdown(event)">
+                                <span>{current_filter_label}</span>
+                                <span style="font-size: 12px; color: #000000;">▼</span>
                                 <div id="filterDropdown" style="display: none; position: absolute; top: 50px; left: 0; background: #1f1f1f; border: 1px solid #198754; border-radius: 12px; width: 100%; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); overflow: hidden; box-sizing: border-box;">
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=unused" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">မသုံးရသေးသောကဒ်များ</a>
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=inuse" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">သုံးနေသောကဒ်များ</a>
