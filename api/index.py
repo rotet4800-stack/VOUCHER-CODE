@@ -320,11 +320,17 @@ class handler(BaseHTTPRequestHandler):
                         vouchers_html = ""
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
+                            status = str(v.get("status", "1"))
+                            status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
+                            status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                             
                             vouchers_html += f"""
-                            <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; flex-direction: column; gap: 4px;">
-                                <span style="font-size: 16px; font-weight: 700; color: #ffffff; font-family: monospace;">{code_no}</span>
-                                <span style="font-size: 13px; color: #adb5bd;">{selected_group_name}</span>
+                            <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="font-size: 16px; font-weight: 700; color: #ffffff; font-family: monospace;">{code_no}</span>
+                                    <div style="font-size: 13px; color: #adb5bd; margin-top: 2px;">{selected_group_name}</div>
+                                </div>
+                                <span style="background: {status_color}30; color: {status_color}; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{status_text}</span>
                             </div>
                             """
                         
@@ -332,8 +338,13 @@ class handler(BaseHTTPRequestHandler):
                         
                         content_html = f"""
                         <div class="sticky-header">
-                            <div style="margin-bottom: 10px; position: relative;">
-                                <div onclick="toggleDropdown(event)" style="background: #ffffff; color: #000000; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754; margin-bottom: 8px;">
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
+                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total: {len(v_list)}</span>
+                                <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
+                            </div>
+                            <div style="position: relative;">
+                                <div onclick="toggleDropdown(event)" style="background: #1f1f1f; color: #ffffff; border: 1px solid #198754; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
                                     <span>{current_filter_label}</span>
                                     <span style="font-size: 12px; color: #38bdf8;">▼</span>
                                 </div>
@@ -342,11 +353,6 @@ class handler(BaseHTTPRequestHandler):
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=inuse" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">သုံးနေသောကဒ်များ</a>
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
                                 </div>
-                            </div>
-                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754;">
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #ffffff; color: #000000; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
-                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name}</span>
-                                <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #ffffff; color: #000000; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
                             </div>
                         </div>
                         <div class="scrollable-list">
