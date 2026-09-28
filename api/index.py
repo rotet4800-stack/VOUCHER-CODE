@@ -13,7 +13,7 @@ class handler(BaseHTTPRequestHandler):
         selected_group_id = query_params.get('group_id', [None])[0]
         selected_group_name = query_params.get('group_name', ['Group'])[0]
         action = query_params.get('action', [None])[0]
-        filter_status = query_params.get('filter', ['all'])[0]
+        filter_status = query_params.get('filter', ['unused'])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -309,7 +309,13 @@ class handler(BaseHTTPRequestHandler):
                         elif filter_status == 'expired':
                             filtered_v_list = [v for v in v_list if str(v.get("status", "1")) == "3"]
                         else:
-                            filtered_v_list = v_list
+                            filtered_v_list = [v for v in v_list if str(v.get("status", "1")) == "1"]
+
+                        current_filter_label = "မသုံးရသေးသောကဒ်များ"
+                        if filter_status == 'inuse':
+                            current_filter_label = "သုံးနေသောကဒ်များ"
+                        elif filter_status == 'expired':
+                            current_filter_label = "သုံးပြီးသွားသောကဒ်များ"
 
                         vouchers_html = ""
                         for v_idx, v in enumerate(filtered_v_list, 1):
@@ -326,16 +332,20 @@ class handler(BaseHTTPRequestHandler):
                         
                         content_html = f"""
                         <div class="sticky-header">
-                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754; position: relative;">
-                                <div style="position: relative;">
-                                    <button onclick="toggleDropdown(event)" style="background: #ffffff; color: #000000; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">▼</button>
-                                    <div id="filterDropdown" style="display: none; position: absolute; top: 45px; left: 0; background: #1f1f1f; border: 1px solid #198754; border-radius: 10px; width: 200px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); overflow: hidden;">
-                                        <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=unused" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">မသုံးရသေးသောကဒ်များ</a>
-                                        <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=inuse" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">သုံးနေသောကဒ်များ</a>
-                                        <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
-                                    </div>
+                            <div style="margin-bottom: 10px; position: relative;">
+                                <div onclick="toggleDropdown(event)" style="background: #ffffff; color: #000000; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                                    <span>{current_filter_label}</span>
+                                    <span style="font-size: 12px; color: #38bdf8;">▼</span>
                                 </div>
+                                <div id="filterDropdown" style="display: none; position: absolute; top: 50px; left: 0; background: #1f1f1f; border: 1px solid #198754; border-radius: 12px; width: 100%; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); overflow: hidden; box-sizing: border-box;">
+                                    <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=unused" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">မသုံးရသေးသောကဒ်များ</a>
+                                    <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=inuse" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">သုံးနေသောကဒ်များ</a>
+                                    <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
+                                </div>
+                            </div>
+                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754;">
                                 <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #ffffff; color: #000000; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
+                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name}</span>
                                 <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #ffffff; color: #000000; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
                             </div>
                         </div>
