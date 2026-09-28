@@ -14,6 +14,7 @@ class handler(BaseHTTPRequestHandler):
         selected_group_name = query_params.get('group_name', ['Group'])[0]
         action = query_params.get('action', [None])[0]
         filter_status = query_params.get('filter', ['unused'])[0]
+        delete_code = query_params.get('delete_code', [None])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -52,6 +53,17 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
+            if action == 'delete_voucher' and delete_code and selected_group_id:
+                del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{GROUP_ID}?access_token={access_token}"
+                del_payload = json.dumps({"voucherCode": delete_code})
+                safe_request('post', del_url, headers=headers, data=del_payload)
+                
+                self.send_response(303)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter={filter_status}')
+                self.end_headers()
+                return
+
             if action == 'generate_now' and selected_group_id:
                 quantity = int(query_params.get('quantity', [1])[0])
                 
@@ -78,7 +90,7 @@ class handler(BaseHTTPRequestHandler):
                 
                 self.send_response(303)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}')
+                self.send_header('Location', f'/?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter={filter_status}')
                 self.end_headers()
                 return
 
@@ -324,13 +336,17 @@ class handler(BaseHTTPRequestHandler):
                             status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                             status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                             
+                            delete_btn = ""
+                            if status == "3":
+                                delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
+
                             vouchers_html += f"""
                             <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <span style="font-size: 16px; font-weight: 700; color: #ffffff; font-family: monospace;">{code_no}</span>
-                                    <div style="font-size: 13px; color: #adb5bd; margin-top: 2px;">{selected_group_name}</div>
+                                    <div style="margin-top: 4px;"><span style="background: {status_color}30; color: {status_color}; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;">{status_text}</span></div>
                                 </div>
-                                <span style="background: {status_color}30; color: {status_color}; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{status_text}</span>
+                                <div>{delete_btn}</div>
                             </div>
                             """
                         
@@ -338,12 +354,7 @@ class handler(BaseHTTPRequestHandler):
                         
                         content_html = f"""
                         <div class="sticky-header">
-                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754; margin-bottom: 8px;">
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
-                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total: {len(v_list)}</span>
-                                <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
-                            </div>
-                            <div style="position: relative;">
+                            <div style="margin-bottom: 8px; position: relative;">
                                 <div onclick="toggleDropdown(event)" style="background: #1f1f1f; color: #ffffff; border: 1px solid #198754; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
                                     <span>{current_filter_label}</span>
                                     <span style="font-size: 12px; color: #38bdf8;">▼</span>
@@ -353,6 +364,11 @@ class handler(BaseHTTPRequestHandler):
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=inuse" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px; border-bottom: 1px solid #333333;">သုံးနေသောကဒ်များ</a>
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
                                 </div>
+                            </div>
+                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754;">
+                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
+                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total: {len(v_list)}</span>
+                                <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
                             </div>
                         </div>
                         <div class="scrollable-list">
