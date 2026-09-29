@@ -337,7 +337,6 @@ class handler(BaseHTTPRequestHandler):
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
                             
-                            # နံပါတ်စဉ်များနှင့် Code စာသားများ လုံးဝမပါဘဲ သန့်ရှင်းသော ကတ်ပြားဒီဇိုင်း
                             vouchers_html += f"""
                             <div onclick="toggleCardSelect(this, '{code_no}')" style="background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.3); cursor: pointer; transition: background 0.2s;">
                                 <div style="display: flex; align-items: center; gap: 14px;">
