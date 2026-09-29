@@ -394,12 +394,22 @@ class handler(BaseHTTPRequestHandler):
                 
                 items_html = ""
                 for client in raw_list:
-                    model = client.get("staModel") or client.get("hostName") or client.get("mac") or "Unknown"
+                    brand = client.get("manufacturer") or "Unknown"
+                    model = client.get("staModel") or client.get("userName") or "Mobile Device"
+                    band = client.get("band") or "-"
                     
                     items_html += f"""
                     <div style="background: #1f1f1f; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                        <div style="font-size: 15px; font-weight: 700; color: #ffffff;">
-                            {model}
+                        <div>
+                            <div style="font-size: 14px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                                <span style="text-transform: uppercase; letter-spacing: 0.5px;">{brand}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #adb5bd; margin-top: 2px;">
+                                Model: <b style="color: #ffffff;">{model}</b>
+                            </div>
+                        </div>
+                        <div style="background: #1e294b; color: #38bdf8; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #334155;">
+                            {band}
                         </div>
                     </div>
                     """
