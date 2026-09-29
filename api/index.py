@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, make_response
+from flask import Flask, request, redirect
 import requests
 import json
 from concurrent.futures import ThreadPoolExecutor
@@ -486,4 +486,4 @@ def index():
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Voucher Manager</title>
             <style>
-                html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #121212; font-family: -apple-system, BlinkMacSystemFont, '
+                html, body {{ height: 100%; margin: 0; padding: 0; overflow: hidden; background: #121212; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; position: fixed; width:
