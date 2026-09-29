@@ -337,7 +337,7 @@ class handler(BaseHTTPRequestHandler):
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
                             
-                            # နံပါတ်စဉ်များနှင့် "Code:" စာသားများ လုံးဝမပါဘဲ ကတ်ပြားဒီဇိုင်းနှင့် Checkbox သာပါဝင်စေခြင်း
+                            # နံပါတ်စဉ်များနှင့် Code စာသားများ လုံးဝမပါဘဲ သန့်ရှင်းသော ကတ်ပြားဒီဇိုင်း
                             vouchers_html += f"""
                             <div onclick="toggleCardSelect(this, '{code_no}')" style="background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.3); cursor: pointer; transition: background 0.2s;">
                                 <div style="display: flex; align-items: center; gap: 14px;">
@@ -370,7 +370,6 @@ class handler(BaseHTTPRequestHandler):
                                     <span style="font-size: 14px; font-weight: 700; color: #ffffff;">Total Unused: {len(v_list)}</span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <!-- ရွေးချယ်ထားပါက အပေါ်တွင် ပေါ်လာမည့် DELETE ခလုတ် -->
                                     <button id="deleteBtn" onclick="executeDelete('{selected_group_id}', '{selected_group_name}', '{filter_status}')" style="display: none; background: #dc3545; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">DELETE (0)</button>
                                     
                                     <a href="?tab=groups" style="background: #ffffff; color: #000; padding: 8px 10px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">≡</a>
