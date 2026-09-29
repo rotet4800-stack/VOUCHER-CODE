@@ -14,7 +14,9 @@ class handler(BaseHTTPRequestHandler):
         selected_group_name = query_params.get('group_name', ['Group'])[0]
         action = query_params.get('action', [None])[0]
         filter_status = query_params.get('filter', ['unused'])[0]
-        delete_code = query_params.get('delete_code', [None])[0]
+        
+        # မျိုးစုံ (Multiple) ဖျက်ရန် ကုဒ်များကို ရယူခြင်း
+        delete_codes = query_params.get('delete_codes', [None])[0]
 
         APP_ID = "openc3be644fb5dc"
         SECRET = "0dea886911864f359497a65f94164518"
@@ -53,10 +55,15 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            if action == 'delete_voucher' and delete_code and selected_group_id:
+            # Ruijie ဆာဗာမှ ရွေးချယ်ထားသော ကုဒ်များကို အမှန်တကယ် ဖျက်ထုတ်ခြင်း
+            if action == 'delete_vouchers' and delete_codes and selected_group_id:
+                codes_to_delete = delete_codes.split(',')
                 del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{selected_group_id}?access_token={access_token}"
-                del_payload = json.dumps({"voucherCode": delete_code, "account": delete_code})
-                safe_request('post', del_url, headers=headers, data=del_payload)
+                
+                for code in codes_to_delete:
+                    if code.strip():
+                        del_payload = json.dumps({"voucherCode": code.strip(), "account": code.strip()})
+                        safe_request('post', del_url, headers=headers, data=del_payload)
                 
                 self.send_response(303)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
@@ -333,15 +340,15 @@ class handler(BaseHTTPRequestHandler):
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
                             
-                            # ပုံပါ မူရင်းအပြာရောင်ကတ်ပြား ဒီဇိုင်းအတိုင်း ထိန်းသိမ်းထားပြီး ဖျက်ရန် 🗑️ ခလုတ်ကိုပါ ထည့်သွင်းပေးခြင်း[span_1](start_span)[span_1](end_span)
+                            # ကတ်ပြားတစ်ခုချင်းစီတွင် Checkbox ထည့်သွင်းပြီး ရွေးချယ်နိုင်စေရန်
                             vouchers_html += f"""
-                            <div style="background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.3);">
-                                <div>
-                                    <div style="font-size: 18px; font-weight: 800; color: #ffffff; font-family: monospace; letter-spacing: 1px;">{code_no}</div>
-                                    <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">{selected_group_name}</div>
-                                </div>
-                                <div>
-                                    <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🗑️ ဖျက်မည်</a>
+                            <div onclick="toggleCardSelect(this, '{code_no}')" style="background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.3); cursor: pointer; transition: background 0.2s;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <input type="checkbox" class="voucher-checkbox" value="{code_no}" onclick="event.stopPropagation(); updateDeleteButton();" style="width: 20px; height: 20px; accent-color: #dc3545; cursor: pointer;">
+                                    <div>
+                                        <div style="font-size: 18px; font-weight: 800; color: #ffffff; font-family: monospace; letter-spacing: 1px;">{code_no}</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">{selected_group_name}</div>
+                                    </div>
                                 </div>
                             </div>
                             """
@@ -359,14 +366,19 @@ class handler(BaseHTTPRequestHandler):
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
                                 </div>
                             </div>
-                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: none;">
+                            
+                            <!-- Header Bar: DELETE ခလုတ်ပါဝင်ပြီး ရွေးချယ်ထားမှသာ ပေါ်မည် -->
+                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #0d6efd; border-radius: 12px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px;">+</a>
-                                    <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Total: {len(v_list)}</span>
+                                    <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 18px;">+</a>
+                                    <span style="font-size: 14px; font-weight: 700; color: #ffffff;">Total Unused: {len(v_list)}</span>
                                 </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <a href="?tab=groups" style="background: #ffffff; color: #000; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold;">≡</a>
-                                    <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer;" title="Print">🖨️</button>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <!-- DELETE ခလုတ် (မူလကွယ်ထားမည်၊ ရွေးချယ်မှပေါ်မည်) -->
+                                    <button id="deleteBtn" onclick="executeDelete('{selected_group_id}', '{selected_group_name}', '{filter_status}')" style="display: none; background: #dc3545; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">DELETE (0)</button>
+                                    
+                                    <a href="?tab=groups" style="background: #ffffff; color: #000; padding: 8px 10px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">≡</a>
+                                    <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer;" title="Print">🖨️</button>
                                 </div>
                             </div>
                         </div>
@@ -383,6 +395,33 @@ class handler(BaseHTTPRequestHandler):
                                 let drop = document.getElementById('filterDropdown');
                                 if (drop) drop.style.display = 'none';
                             }});
+
+                            function toggleCardSelect(cardDiv, codeNo) {{
+                                let checkbox = cardDiv.querySelector('.voucher-checkbox');
+                                checkbox.checked = !checkbox.checked;
+                                updateDeleteButton();
+                            }}
+
+                            function updateDeleteButton() {{
+                                let checkboxes = document.querySelectorAll('.voucher-checkbox:checked');
+                                let deleteBtn = document.getElementById('deleteBtn');
+                                if (checkboxes.length > 0) {{
+                                    deleteBtn.style.display = 'block';
+                                    deleteBtn.innerText = "DELETE (" + checkboxes.length + ")";
+                                }} else {{
+                                    deleteBtn.style.display = 'none';
+                                }}
+                            }}
+
+                            function executeDelete(groupId, groupName, filterStatus) {{
+                                let checkboxes = document.querySelectorAll('.voucher-checkbox:checked');
+                                let codes = Array.from(checkboxes).map(cb => cb.value);
+                                if (codes.length === 0) return;
+
+                                if (confirm("ရွေးချယ်ထားသော ကုဒ် " + codes.length + " ခုကို Ruijie ဆာဗာမှ အမှန်တကယ် ဖျက်မှာလား?")) {{
+                                    window.location.href = `/?tab=groups&group_id=${groupId}&group_name=${groupName}&action=delete_vouchers&delete_codes=${codes.join(',')}&filter=${filterStatus}`;
+                                }}
+                            }}
                         </script>
                         """
                 else:
