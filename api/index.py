@@ -53,7 +53,6 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # မည်သည့်ကုဒ်မဆို အလွယ်တကူ ဖျက်နိုင်ရန်
             if action == 'delete_voucher' and delete_code and selected_group_id:
                 del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{selected_group_id}?access_token={access_token}"
                 del_payload = json.dumps({"voucherCode": delete_code, "account": delete_code})
@@ -204,7 +203,7 @@ class handler(BaseHTTPRequestHandler):
                     </div>
                 </div>
                 <script>
-                    window.addEventListener('DOMContentLoaded', () => {{
+                    window.addEventListener('DOMContentLoaded', () => {
                         let savedName = localStorage.getItem('print_wifi_name');
                         if (savedName) {
                             document.getElementById('settingWifiName').value = savedName;
@@ -337,7 +336,7 @@ class handler(BaseHTTPRequestHandler):
                             status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
                             status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                             
-                            # ပြင်ဆင်ချက် - မည်သည့်ကုဒ်မဆို (Available ဖြစ်နေရင်တောင်) 🗑️ ဖျက်မည် ခလုတ် အမြဲပေါ်နေစေရန်
+                            # မည်သည့်ကုဒ်မဆို (Available ဖြစ်နေရင်တောင်) 🗑️ ဖျက်မည် ခလုတ် အမြဲပေါ်နေစေရန်
                             delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(220,53,69,0.3);">🗑️ ဖျက်မည်</a>"""
 
                             vouchers_html += f"""
