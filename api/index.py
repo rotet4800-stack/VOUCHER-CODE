@@ -53,9 +53,10 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
+            # Fixed: Ruijie API ဖြင့် သက်တမ်းကုန်ကုဒ်များ (Account/Voucher) အမှန်တကယ် ဖျက်ရန်
             if action == 'delete_voucher' and delete_code and selected_group_id:
-                del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{GROUP_ID}?access_token={access_token}"
-                del_payload = json.dumps({"voucherCode": delete_code})
+                del_url = f"{BASE_URL}/service/api/open/auth/account/delete/{GROUP_ID}?access_token={access_token}"
+                del_payload = json.dumps({"username": delete_code, "account": delete_code})
                 safe_request('post', del_url, headers=headers, data=del_payload)
                 
                 self.send_response(303)
@@ -556,7 +557,6 @@ class handler(BaseHTTPRequestHandler):
                             let encoder = new TextEncoder();
                             let printChunks = [];
                             
-                            // Initialize printer
                             printChunks.push("\\x1B\\x40\\x1B\\x61\\x01");
                             
                             for (let i = 0; i < count && i < codes.length; i++) {{
@@ -592,12 +592,10 @@ class handler(BaseHTTPRequestHandler):
                                 printChunks.push(voucherText);
                             }}
 
-                            // Final feed to push out the last ticket fully
                             printChunks.push("\\n\\n");
 
                             let finalPrintString = printChunks.join("");
                             
-                            // Send in chunks to prevent BLE buffer overflow and ensure all tickets print
                             let encodedData = encoder.encode(finalPrintString);
                             let chunkSize = 100;
                             for (let offset = 0; offset < encodedData.length; offset += chunkSize) {{
