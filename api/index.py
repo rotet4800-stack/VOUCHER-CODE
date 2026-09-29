@@ -8,7 +8,7 @@ app = Flask(__name__)
 # ---- Configuration ----
 APP_ID = "openc3be644fb5dc"
 SECRET = "0dea886911864f359497a65f94164518"
-BASE_URL = "https://cloud-as.ruijienetworks.com"
+BASE_URL = "https://cloud-as.ruijienetworks.com/sso/login?service=https%3A%2F%2Fcloud-as.ruijienetworks.com%2Fwebproxy%2Fsso%2Fback%3Frewrite%3Doff%26back%3Dhttps%253A%252F%252Fcloud-as.ruijienetworks.com%252Fmacc5%252FadminIntl%252F%2523%252F"
 GROUP_ID = "7833000"
 
 HEADERS = {
