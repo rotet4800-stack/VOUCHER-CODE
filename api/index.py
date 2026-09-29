@@ -122,7 +122,7 @@ class handler(BaseHTTPRequestHandler):
                     <div class="blue-box" style="border: 2px solid #198754;">Print Setting</div>
                 </div>
                 <div class="fixed-setting-container">
-                    <div style="background: #1f1f1f; padding: 16px; border-radius: 14px; border: 1px solid #198754; box-shadow: 0 4px 8px rgba(0,0,0,0.2); height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div style="background: #1f1f1f; padding: 16px; border-radius: 14px; border: 1px solid #198754; box-shadow: 0 4px 8px rgba(0,0,0,0.2); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
                         <div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: 700; margin-bottom: 4px; color: #ffffff; font-size: 14px;">Wifi Name :</label>
@@ -456,7 +456,7 @@ class handler(BaseHTTPRequestHandler):
                     .scrollable-list::-webkit-scrollbar-thumb {{ background: #333333; border-radius: 10px; }}
                     
                     /* Fixed Print Setting Container */
-                    .fixed-setting-container {{ flex-grow: 1; overflow: hidden; padding: 0 14px 14px 14px; margin-top: 6px; background: #121212; display: flex; flex-direction: column; }}
+                    .fixed-setting-container {{ flex-grow: 1; overflow-y: auto; padding: 0 14px 14px 14px; margin-top: 6px; background: #121212; display: flex; flex-direction: column; }}
                 </style>
             </head>
             <body>
