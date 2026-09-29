@@ -53,10 +53,10 @@ class handler(BaseHTTPRequestHandler):
 
             access_token = token_data.get("accessToken")
 
-            # Fixed: Ruijie API ဖြင့် သက်တမ်းကုန်ကုဒ်များ (Account/Voucher) အမှန်တကယ် ဖျက်ရန်
+            # သက်တမ်းကုန်ကုဒ်များကို Ruijie API ဖြင့် အမှန်တကယ် ဖျက်ရန်
             if action == 'delete_voucher' and delete_code and selected_group_id:
-                del_url = f"{BASE_URL}/service/api/open/auth/account/delete/{GROUP_ID}?access_token={access_token}"
-                del_payload = json.dumps({"username": delete_code, "account": delete_code})
+                del_url = f"{BASE_URL}/service/api/open/auth/voucher/delete/{selected_group_id}?access_token={access_token}"
+                del_payload = json.dumps({"voucherCode": delete_code, "account": delete_code})
                 safe_request('post', del_url, headers=headers, data=del_payload)
                 
                 self.send_response(303)
@@ -339,7 +339,7 @@ class handler(BaseHTTPRequestHandler):
                             
                             delete_btn = ""
                             if status == "3":
-                                delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
+                                delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို Ruijie ဆာဗာမှ အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">🗑️ ဖျက်မည်</a>"""
 
                             vouchers_html += f"""
                             <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
