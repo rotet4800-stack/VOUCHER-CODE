@@ -413,7 +413,6 @@ class handler(BaseHTTPRequestHandler):
                                 if (codes.length === 0) return;
 
                                 if (confirm("ရွေးချယ်ထားသော ကုဒ် " + codes.length + " ခုကို Ruijie ဆာဗာမှ အမှန်တကယ် ဖျက်မှာလား?")) {{
-                                    // ပြင်ဆင်ပြီးသား အပိုင်း (Python f-string အတွင်း JavaScript Template Literal မသုံးတော့ပါ)
                                     window.location.href = "/?tab=groups&group_id=" + groupId + "&group_name=" + groupName + "&action=delete_vouchers&delete_codes=" + codes.join(',') + "&filter=" + filterStatus;
                                 }}
                             }}
@@ -515,9 +514,4 @@ class handler(BaseHTTPRequestHandler):
                 </div>
                 """
 
-            html_content = f"""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            html_content = f
