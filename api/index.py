@@ -332,20 +332,17 @@ class handler(BaseHTTPRequestHandler):
                         vouchers_html = ""
                         for v_idx, v in enumerate(filtered_v_list, 1):
                             code_no = v.get("codeNo") or "N/A"
-                            status = str(v.get("status", "1"))
-                            status_text = "In-Use" if status == "2" else ("Expired" if status == "3" else "Available")
-                            status_color = "#198754" if status == "2" else ("#dc3545" if status == "3" else "#0d6efd")
                             
-                            # မည်သည့်ကုဒ်မဆို (Available ဖြစ်နေရင်တောင်) 🗑️ ဖျက်မည် ခလုတ် အမြဲပေါ်နေစေရန်
-                            delete_btn = f"""<a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(220,53,69,0.3);">🗑️ ဖျက်မည်</a>"""
-
+                            # ပုံပါ မူရင်းအပြာရောင်ကတ်ပြား ဒီဇိုင်းအတိုင်း ထိန်းသိမ်းထားပြီး ဖျက်ရန် 🗑️ ခလုတ်ကိုပါ ထည့်သွင်းပေးခြင်း[span_1](start_span)[span_1](end_span)
                             vouchers_html += f"""
-                            <div style="background: #1f1f1f; padding: 14px 16px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #198754; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.3);">
                                 <div>
-                                    <span style="font-size: 16px; font-weight: 700; color: #ffffff; font-family: monospace;">{code_no}</span>
-                                    <div style="margin-top: 4px;"><span style="background: {status_color}30; color: {status_color}; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;">{status_text}</span></div>
+                                    <div style="font-size: 18px; font-weight: 800; color: #ffffff; font-family: monospace; letter-spacing: 1px;">{code_no}</div>
+                                    <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">{selected_group_name}</div>
                                 </div>
-                                <div>{delete_btn}</div>
+                                <div>
+                                    <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&action=delete_voucher&delete_code={code_no}&filter={filter_status}" onclick="return confirm('ဒီကုဒ် {code_no} ကို အမှန်တကယ် ဖျက်မှာလား?');" style="background: #dc3545; color: #fff; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🗑️ ဖျက်မည်</a>
+                                </div>
                             </div>
                             """
                         
@@ -362,10 +359,15 @@ class handler(BaseHTTPRequestHandler):
                                     <a href="?tab=groups&group_id={selected_group_id}&group_name={selected_group_name}&filter=expired" style="display: block; padding: 12px 16px; color: #ffffff; text-decoration: none; font-size: 14px;">သုံးပြီးသွားသောကဒ်များ</a>
                                 </div>
                             </div>
-                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 2px solid #198754;">
-                                <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">+</a>
-                                <span style="font-size: 16px; font-weight: 700; color: #ffffff;">{selected_group_name} - Total: {len(v_list)}</span>
-                                <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Print">🖨️</button>
+                            <div class="blue-box" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: none;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <a href="?tab=groups&action=generate_form&group_id={selected_group_id}&group_name={selected_group_name}" style="background: #198754; color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: 800; font-size: 20px;">+</a>
+                                    <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Total: {len(v_list)}</span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="?tab=groups" style="background: #ffffff; color: #000; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold;">≡</a>
+                                    <button onclick='startPrinting("{selected_group_name}", {codes_json})' style="background: #0dcaf0; color: #ffffff; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer;" title="Print">🖨️</button>
+                                </div>
                             </div>
                         </div>
                         <div class="scrollable-list">
@@ -420,7 +422,7 @@ class handler(BaseHTTPRequestHandler):
                         
                         items_html += f"""
                         <a href="?tab=groups&group_id={g_id}&group_name={name}" style="text-decoration: none; display: block;">
-                            <div class="blue-card" style="border: 1px solid #198754;">
+                            <div class="blue-card" style="background: #3b5bdb; border: none;">
                                 <span style="color: #38bdf8; font-weight: 800; font-size: 15px;">{index}.</span> 
                                 <span style="font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">{name}</span>
                             </div>
@@ -430,9 +432,9 @@ class handler(BaseHTTPRequestHandler):
                     content_html = f"""
                     <div class="sticky-header">
                         <div class="footer-summary">
-                            <div class="summary-card" style="border: 1px solid #198754;">Total: <b>{total_vouchers}</b></div>
-                            <div class="summary-card" style="border: 1px solid #198754;">In-Use: <b>{used_vouchers}</b></div>
-                            <div class="summary-card" style="border: 1px solid #198754;">Expired: <b>{expired_vouchers}</b></div>
+                            <div class="summary-card" style="background: #3b5bdb; border: none;">Total: <b>{total_vouchers}</b></div>
+                            <div class="summary-card" style="background: #3b5bdb; border: none;">In-Use: <b>{used_vouchers}</b></div>
+                            <div class="summary-card" style="background: #3b5bdb; border: none;">Expired: <b>{expired_vouchers}</b></div>
                         </div>
                     </div>
                     <div class="scrollable-list">
@@ -502,10 +504,10 @@ class handler(BaseHTTPRequestHandler):
 
                     /* Sub Dashboard Styles */
                     .sticky-header {{ flex-shrink: 0; background: #121212; padding: 14px 14px 6px 14px; z-index: 10; }}
-                    .blue-box {{ background: #0d6efd; color: #ffffff; padding: 14px 16px; border-radius: 14px; font-size: 16px; font-weight: 700; border: 2px solid #084298; }}
-                    .blue-card {{ background: #1f1f1f; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #333333; display: flex; align-items: center; gap: 12px; }}
+                    .blue-box {{ background: #0d6efd; color: #ffffff; padding: 14px 16px; border-radius: 14px; font-size: 16px; font-weight: 700; }}
+                    .blue-card {{ background: #3b5bdb; padding: 14px 18px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: center; gap: 12px; }}
                     .footer-summary {{ display: flex; gap: 6px; }}
-                    .summary-card {{ flex: 1; background: #1f1f1f; border: 1px solid #333333; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #ffffff; }}
+                    .summary-card {{ flex: 1; background: #3b5bdb; padding: 10px 6px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #ffffff; }}
                     .summary-card b {{ display: block; color: #38bdf8; font-size: 14px; margin-top: 2px; }}
                     .scrollable-list {{ flex-grow: 1; overflow-y: auto; padding: 0 14px 14px 14px; margin-top: 6px; -webkit-overflow-scrolling: touch; min-height: 0; background: #121212; }}
                     .scrollable-list::-webkit-scrollbar {{ width: 5px; }}
